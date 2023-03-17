@@ -187,7 +187,7 @@ for i in range(data_size):
         fdata[i].append(fuzzify(data[i][j]))
 
 # кластеризация
-clust_c = 5  # число кластеров
+clust_c = 4  # число кластеров
 clust_m = 1.5  # степенной параметр фаззификации
 clust_error = 1e-5
 clust_maxiter = 1000
@@ -195,3 +195,17 @@ centers, membership_degrees = cmeans_fuzzy_data(fdata, clust_c, clust_m, clust_e
 
 print("Центроиды:\n", centers)
 print("Меры принадлежности точек к кластерам:\n", membership_degrees)
+
+with open("clustering_result.txt", "wt") as fp:
+    fp.write('Центроиды:\n')
+    for cntr in centers:
+        for fuz_number in cntr:
+            fp.write(str(fuz_number))
+            fp.write('; ')
+        fp.write('\n')
+    fp.write('\n\nМеры принадлежности точек к кластерам:\n')
+    for sample_point in membership_degrees:
+        for x in sample_point:
+            fp.write(str(x))
+            fp.write(" ")
+        fp.write('\n')
