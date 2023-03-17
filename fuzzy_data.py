@@ -188,7 +188,7 @@ for i in range(data_size):
 
 # кластеризация
 clust_c = 4  # число кластеров
-clust_m = 1.5  # степенной параметр фаззификации
+clust_m = 1.3  # степенной параметр фаззификации
 clust_error = 1e-5
 clust_maxiter = 1000
 centers, membership_degrees = cmeans_fuzzy_data(fdata, clust_c, clust_m, clust_error, clust_maxiter)
@@ -209,3 +209,35 @@ with open("clustering_result.txt", "wt") as fp:
             fp.write(str(x))
             fp.write(" ")
         fp.write('\n')
+
+    threshold = 0.6
+    clusters_points = [[] for _ in range(clust_c)]
+    outliers = []
+    for point_index, point_memberships in enumerate(membership_degrees):
+        best_cluster = None
+        for cluster_index, mmbr in enumerate(point_memberships):
+            if mmbr > threshold:
+                best_cluster = cluster_index
+        if best_cluster is not None:
+            clusters_points[best_cluster].append(point_index)
+        else:
+            outliers.append(point_index)
+    
+    fp.write('\n\n\n')
+    for cluster_index in range(clust_c):
+        fp.write('Кластер ')
+        fp.write(str(cluster_index + 1))
+        fp.write(':\n')
+        for point_index in clusters_points[cluster_index]:
+            for x in membership_degrees[point_index]:
+                fp.write(str(x))
+                fp.write(" ")
+            fp.write("\n")
+        fp.write("\n")
+    fp.write("Остальные точки:\n")
+    for point_index in outliers:
+        for x in membership_degrees[point_index]:
+            fp.write(str(x))
+            fp.write(" ")
+        fp.write("\n")
+        
