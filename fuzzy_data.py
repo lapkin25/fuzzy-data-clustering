@@ -147,10 +147,21 @@ def fuzzify(val):
     """
     Возвращает нечеткое число, соответствующее четкому значению val
     """
-    c1 = val
-    c2 = val
-    l = 0
-    r = 0
+    if val == 0:
+        c1 = val
+        c2 = val
+        l = 0
+        r = 1
+    elif val == 5:
+        c1 = val
+        c2 = val
+        l = 1
+        r = 0
+    else:
+        c1 = val
+        c2 = val
+        l = 1
+        r = 1
     return FuzzyNumber(c1, c2, l, r)
 
 
