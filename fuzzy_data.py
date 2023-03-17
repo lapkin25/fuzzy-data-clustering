@@ -227,11 +227,22 @@ with open("clustering_result.txt", "wt") as fp:
     for cluster_index in range(clust_c):
         fp.write('Кластер ')
         fp.write(str(cluster_index + 1))
+        fp.write(" (")
+        for fuz_number in centers[cluster_index]:
+            x = ((fuz_number.c1 - fuz_number.l) + (fuz_number.c2 + fuz_number.r)) / 2
+            fp.write('%.2f' % x)
+            fp.write(", ")
+        fp.write(")")
         fp.write(':\n')
         for point_index in clusters_points[cluster_index]:
             for x in membership_degrees[point_index]:
                 fp.write(str(x))
                 fp.write(" ")
+            fp.write("  (")
+            for x in data[point_index]:
+                fp.write(str(x))
+                fp.write(" ")
+            fp.write(")")
             fp.write("\n")
         fp.write("\n")
     fp.write("Остальные точки:\n")
@@ -239,5 +250,10 @@ with open("clustering_result.txt", "wt") as fp:
         for x in membership_degrees[point_index]:
             fp.write(str(x))
             fp.write(" ")
+        fp.write("  (")
+        for x in data[point_index]:
+            fp.write(str(x))
+            fp.write(" ")
+        fp.write(")")
         fp.write("\n")
         
