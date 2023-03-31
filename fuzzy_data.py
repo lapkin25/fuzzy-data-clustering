@@ -187,7 +187,7 @@ for i in range(data_size):
         fdata[i].append(fuzzify(data[i][j]))
 
 # кластеризация
-clust_c = 4  # число кластеров
+clust_c = 3  # число кластеров
 clust_m = 1.3  # степенной параметр фаззификации
 clust_error = 1e-5
 clust_maxiter = 1000
@@ -243,6 +243,7 @@ with open("clustering_result.txt", "wt") as fp:
                 fp.write(str(x))
                 fp.write(" ")
             fp.write(")")
+            fp.write(" [" + str(point_index + 1) + "]")
             fp.write("\n")
         fp.write("\n")
     fp.write("Остальные точки:\n")
@@ -255,5 +256,11 @@ with open("clustering_result.txt", "wt") as fp:
             fp.write(str(x))
             fp.write(" ")
         fp.write(")")
+        fp.write(" [" + str(point_index + 1) + "]")
         fp.write("\n")
-        
+
+    fp.write("\n\nТочки к кластерам:\n")
+    for cluster_index in range(clust_c):
+        for point_index in clusters_points[cluster_index]:
+            fp.write(str(point_index + 1) + " ")
+        fp.write("\n")
