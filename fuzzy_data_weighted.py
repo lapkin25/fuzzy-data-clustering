@@ -69,6 +69,8 @@ def cmeans_fuzzy_data(data, c, m, error, maxiter):
             Меры принадлежности точек к кластерам
         w: list(float)
             Веса признаков
+        A: list(float)
+            Компоненты целевого функционала
     """
 
     # размер выборки
@@ -95,6 +97,10 @@ def cmeans_fuzzy_data(data, c, m, error, maxiter):
 
     # веса признаков
     w = [1 / dim for j in range(dim)]
+    #w = [1, 1, 1, 0.6, 0.6, 0.6, 1, 0.6, 0.6, 0.6]
+    sum_w = sum(w)
+    for j in range(dim):
+       w[j] /= sum_w
 
     for iter in range(maxiter):
 
@@ -147,24 +153,25 @@ def cmeans_fuzzy_data(data, c, m, error, maxiter):
             for k in range(c):
                 u[i][k] = new_u[i][k]
 
+        # вычисляем компоненты функционала: J = sum(w_j^2 * A_j)
+        A = [0] * dim
+        for j in range(dim):
+            A[j] = 0
+            for i in range(data_size):
+                for k in range(c):
+                    A[j] += (u[i][k] ** m) * (
+                        (wc ** 2) * (
+                            (data[i][j].c1 - centroids[k][j].c1) ** 2 + (data[i][j].c2 - centroids[k][j].c2) ** 2)
+                        + (ws ** 2) * (
+                            (data[i][j].l - centroids[k][j].l) ** 2 + (data[i][j].r - centroids[k][j].r) ** 2) )
         # вычисляем веса признаков
-        # A = [0] * dim
-        # for j in range(dim):
-        #     A[j] = 0
-        #     for i in range(data_size):
-        #         for k in range(c):
-        #             A[j] += (u[i][k] ** m) * (
-        #                 (wc ** 2) * (
-        #                     (data[i][j].c1 - centroids[k][j].c1) ** 2 + (data[i][j].c2 - centroids[k][j].c2) ** 2)
-        #                 + (ws ** 2) * (
-        #                     (data[i][j].l - centroids[k][j].l) ** 2 + (data[i][j].r - centroids[k][j].r) ** 2) )
         # s = 0
         # for j in range(dim):
         #     s += 1 / A[j]
         # for j in range(dim):
         #     w[j] = (1 / A[j]) / s
 
-    return centroids, u, w
+    return centroids, u, w, A
 
 
 def fuzzify(val):
@@ -215,7 +222,7 @@ clust_c = 3  # число кластеров
 clust_m = 1.3  # степенной параметр фаззификации
 clust_error = 1e-5
 clust_maxiter = 1000
-centers, membership_degrees, w = cmeans_fuzzy_data(fdata, clust_c, clust_m, clust_error, clust_maxiter)
+centers, membership_degrees, w, A = cmeans_fuzzy_data(fdata, clust_c, clust_m, clust_error, clust_maxiter)
 
 print("Центроиды:\n", centers)
 print("Меры принадлежности точек к кластерам:\n", membership_degrees)
@@ -225,6 +232,9 @@ with open("clustering_result.txt", "wt") as fp:
     for j in range(dim):
         fp.write(str(w[j]))
         fp.write(" ")
+    fp.write('\nКомпоненты функционала:\n')
+    for j in range(dim):
+        fp.write("%.3f " % A[j])
     fp.write("\n\n")
 
     fp.write('Центроиды:\n')
@@ -259,7 +269,7 @@ with open("clustering_result.txt", "wt") as fp:
         fp.write(str(cluster_index + 1))
         fp.write(" (")
         for fuz_number in centers[cluster_index]:
-            x = ((fuz_number.c1 - fuz_number.l) + (fuz_number.c2 + fuz_number.r)) / 2
+            x = (fuz_number.c1 + fuz_number.c2) / 2 + (fuz_number.r - fuz_number.l) / 4  # среднее значение нечеткого числа
             fp.write('%.2f' % x)
             fp.write(", ")
         fp.write(")")
