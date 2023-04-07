@@ -1,5 +1,6 @@
 import csv
 import random
+import math
 
 class FuzzyNumber:
     """
@@ -65,6 +66,9 @@ def cmeans_fuzzy_data(data, c, m, error, maxiter):
         centers: list(list(FuzzyNumber)), size c, N_features
             Координаты центров кластеров
         membership_degrees: list(list(float)), size N_samples, c
+            степени принадлежности точек к кластерам
+        wc, ws: float
+            коэффициенты в расстоянии между нечеткими числами
     """
 
     # размер выборки
@@ -140,8 +144,23 @@ def cmeans_fuzzy_data(data, c, m, error, maxiter):
             for k in range(c):
                 u[i][k] = new_u[i][k]
 
-    return centroids, u
+    return centroids, u, wc, ws
 
+
+def fuzzy_distance (a, b, wc, ws):
+    """
+    Возвращает расстояние между нечеткими числами a и b.
+    """
+    # d(data[i].c1, centr[k].c1) ** 2
+    dc1_sq = sqr_distance([a[j].c1 for j in range(dim)], [b[j].c1 for j in range(dim)])
+    # d(data[i].c2, centr[k].c2) ** 2
+    dc2_sq = sqr_distance([a[j].c2 for j in range(dim)], [b[j].c2 for j in range(dim)])
+    # d(data[i].l, centr[k].l) ** 2
+    dl_sq = sqr_distance([a[j].l for j in range(dim)], [b[j].l for j in range(dim)])
+    # d(data[i].r, centr[k].r) ** 2
+    dr_sq = sqr_distance([a[j].r for j in range(dim)], [b[j].r for j in range(dim)])
+    return math.sqrt((wc ** 2) * (dc1_sq + dc2_sq) + (ws ** 2) * (dl_sq + dr_sq))
+    
 
 def fuzzify(val):
     """
@@ -191,12 +210,22 @@ clust_c = 3  # число кластеров
 clust_m = 1.3  # степенной параметр фаззификации
 clust_error = 1e-5
 clust_maxiter = 1000
-centers, membership_degrees = cmeans_fuzzy_data(fdata, clust_c, clust_m, clust_error, clust_maxiter)
+centers, membership_degrees, wc, ws = cmeans_fuzzy_data(fdata, clust_c, clust_m, clust_error, clust_maxiter)
 
 print("Центроиды:\n", centers)
 print("Меры принадлежности точек к кластерам:\n", membership_degrees)
 
 with open("clustering_result.txt", "wt") as fp:
+    fp.write('wc = %.2f, ws = %.2f\n' % (ws, wc))
+    for cluster_index in range(clust_c):
+        fp.write('Кластер ')
+        fp.write(str(cluster_index + 1))
+        fp.write(" (")
+        for fuz_number in centers[cluster_index]:
+            x = (fuz_number.c1 + fuz_number.c2) / 2 + (fuz_number.r - fuz_number.l) / 4
+            fp.write('%.2f' % x)
+            fp.write(", ")
+        fp.write(")\n")
     fp.write('Центроиды:\n')
     for cntr in centers:
         for fuz_number in cntr:
@@ -206,8 +235,12 @@ with open("clustering_result.txt", "wt") as fp:
     fp.write('\n\nМеры принадлежности точек к кластерам:\n')
     for sample_point in membership_degrees:
         for x in sample_point:
-            fp.write(str(x))
-            fp.write(" ")
+            fp.write("%.2f " % x)
+        fp.write('\n')
+    fp.write('\n\nРасстояния от точек до центроидов:\n')
+    for i in range(data_size):
+        for j in range(clust_c):
+            fp.write("%.2f " % fuzzy_distance(fdata[i], centers[j], wc, ws))
         fp.write('\n')
 
     threshold = 0.6
@@ -229,7 +262,7 @@ with open("clustering_result.txt", "wt") as fp:
         fp.write(str(cluster_index + 1))
         fp.write(" (")
         for fuz_number in centers[cluster_index]:
-            x = ((fuz_number.c1 - fuz_number.l) + (fuz_number.c2 + fuz_number.r)) / 2
+            x = (fuz_number.c1 + fuz_number.c2) / 2 + (fuz_number.r - fuz_number.l) / 4
             fp.write('%.2f' % x)
             fp.write(", ")
         fp.write(")")
@@ -244,6 +277,7 @@ with open("clustering_result.txt", "wt") as fp:
                 fp.write(" ")
             fp.write(")")
             fp.write(" [" + str(point_index + 1) + "]")
+            fp.write(" d = %.2f" % fuzzy_distance(fdata[point_index], centers[cluster_index], wc, ws))
             fp.write("\n")
         fp.write("\n")
     fp.write("Остальные точки:\n")
