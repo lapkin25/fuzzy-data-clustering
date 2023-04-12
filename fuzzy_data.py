@@ -160,6 +160,16 @@ def fuzzy_distance (a, b, wc, ws):
     # d(data[i].r, centr[k].r) ** 2
     dr_sq = sqr_distance([a[j].r for j in range(dim)], [b[j].r for j in range(dim)])
     return math.sqrt((wc ** 2) * (dc1_sq + dc2_sq) + (ws ** 2) * (dl_sq + dr_sq))
+
+def fuzzy_distance_component (a, b, wc, ws, i):
+    """
+    Возвращает i-ю компоненту расстояния между нечеткими числами a и b.
+    """
+    dc1_sq = (a[i].c1 - b[i].c1) ** 2
+    dc2_sq = (a[i].c2 - b[i].c2) ** 2
+    dl_sq = (a[i].l - b[i].l) ** 2
+    dr_sq = (a[i].r - b[i].r) ** 2
+    return math.sqrt((wc ** 2) * (dc1_sq + dc2_sq) + (ws ** 2) * (dl_sq + dr_sq))
     
 
 def fuzzify(val):
@@ -232,6 +242,17 @@ with open("clustering_result.txt", "wt") as fp:
             fp.write(str(fuz_number))
             fp.write('; ')
         fp.write('\n')
+
+    dist_centr = [[] for _ in range(clust_c)]  # расстояния между центроидами
+    for i in range(clust_c):
+        for j in range(clust_c):
+            dist_centr[i].append(fuzzy_distance(centers[i], centers[j], wc, ws))
+    fp.write('\nРасстояния между центроидами:\n')
+    for i in range(clust_c):
+        for j in range(clust_c):
+            fp.write("%.2f " % dist_centr[i][j])
+        fp.write("\n")
+
     fp.write('\n\nМеры принадлежности точек к кластерам:\n')
     for sample_point in membership_degrees:
         for x in sample_point:
@@ -242,7 +263,7 @@ with open("clustering_result.txt", "wt") as fp:
         for j in range(clust_c):
             fp.write("%.2f " % fuzzy_distance(fdata[i], centers[j], wc, ws))
         fp.write('\n')
-
+    
     threshold = 0.6
     clusters_points = [[] for _ in range(clust_c)]
     outliers = []
@@ -298,3 +319,33 @@ with open("clustering_result.txt", "wt") as fp:
         for point_index in clusters_points[cluster_index]:
             fp.write(str(point_index + 1) + " ")
         fp.write("\n")
+
+    fp.write("\n\n")
+    for i in range(dim):
+        fp.write("Компонента %d: разбросы в пределах каждого кластера\n" % (i + 1))
+        for cluster_index in range(clust_c):
+            rms = 0
+            for point_index in range(data_size):
+                rms += membership_degrees[point_index][cluster_index] * fuzzy_distance_component(fdata[point_index], centers[cluster_index], wc, ws, i) ** 2
+            rms = math.sqrt(rms / data_size)
+            fp.write("%.2f  " % rms)            
+        fp.write("\n")
+        
+    fp.write("\n\n")
+    for i in range(dim):
+        fp.write("Компонента %d: расстояния между центроидами по этой компоненте\n" % (i + 1))
+        for k in range(clust_c):
+            for l in range(clust_c):
+                fp.write("%.2f " % fuzzy_distance_component(centers[k], centers[l], wc, ws, i))
+            fp.write("\n")
+
+    spreads = []  # среднеквадратичные разбросы внутри каждого кластера
+    for cluster in range(clust_c):
+        rms = 0
+        for point in range(data_size):
+            rms += membership_degrees[point][cluster] * fuzzy_distance(fdata[point], centers[cluster], wc, ws) ** 2
+        rms = math.sqrt(rms / data_size)
+        spreads.append(rms)
+    fp.write("\nРазбросы внутри кластеров:\n")
+    for i in range(clust_c):
+        fp.write("%.2f  " % spreads[i])
