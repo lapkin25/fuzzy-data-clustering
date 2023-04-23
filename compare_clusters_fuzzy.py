@@ -30,6 +30,13 @@ def make_table(u1, u2):
             p[i].append(sum1 / sum2)
     return p
 
+def print_table(table):
+    with open("compare.txt", "wt") as fp:
+        for i in range(n):
+            for j in range(m):
+                fp.write('%.2f  ' % table[i][j])
+            fp.write("\n")
 
-print(make_table(u1, u2))
-print(make_table(u2, u1))
+
+print_table(make_table(u1, u2))
+print_table(make_table(u2, u1))

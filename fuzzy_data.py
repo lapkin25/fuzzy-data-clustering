@@ -330,19 +330,62 @@ with open("clustering_result.txt", "wt") as fp:
             fp.write(str(point_index + 1) + " ")
         fp.write("\n")
 
-    fp.write("\n\n")
-    for i in range(dim):
-        fp.write("Признак %d: доверительные интервалы для центроидов:\n" % (i + 1))
-        for cluster_index in range(clust_c):
-            rms = 0
-            for point_index in range(data_size):
-                rms += membership_degrees[point_index][cluster_index] * fuzzy_distance_component(
-                    fdata[point_index], centers[cluster_index], wc, ws, i) ** 2
-            rms = math.sqrt(rms / data_size)
-            delta = rms / math.sqrt(sum([membership_degrees[point_index][cluster_index] for point_index in range(data_size)])) * 1.64  # 10%-ный доверительный интервал
-            fp.write("+/-%.2f  " % delta)
-        fp.write("\n")
+    #fp.write("\n\n")
+    #for i in range(dim):
+    #    fp.write("Признак %d: доверительные интервалы для центроидов:\n" % (i + 1))
+    #    for cluster_index in range(clust_c):
+    #        rms = 0
+    #        for point_index in range(data_size):
+    #            rms += membership_degrees[point_index][cluster_index] * fuzzy_distance_component(
+    #                fdata[point_index], centers[cluster_index], wc, ws, i) ** 2
+    #        rms = math.sqrt(rms / data_size)
+    #        delta = rms / math.sqrt(sum([membership_degrees[point_index][cluster_index] for point_index in range(data_size)])) * 1.64  # 10%-ный доверительный интервал
+    #        fp.write("+/-%.2f  " % delta)
+    #    fp.write("\n")
 
+    fp.write("\n\n")
+    for j in range(dim):
+        fp.write("Компонента %d: доверительный интервал для среднего\n" % (j + 1))
+        for k in range(clust_c):
+            fp.write("  Кластер %d\n" % (k + 1))
+            # считаем среднее и дисперсию с учетом мер принадлежности по всем точкам выборки
+            s = 0
+            for i in range(data_size):
+                s += membership_degrees[i][k]
+            # усредняем fdata[i][j] с весами u[i][k]
+            cluster_mean_j = FuzzyNumber(0, 0, 0, 0)
+            for i in range(data_size):
+                cluster_mean_j.c1 += membership_degrees[i][k] * fdata[i][j].c1
+                cluster_mean_j.c2 += membership_degrees[i][k] * fdata[i][j].c2
+                cluster_mean_j.l += membership_degrees[i][k] * fdata[i][j].l
+                cluster_mean_j.r += membership_degrees[i][k] * fdata[i][j].r
+            cluster_mean_j.c1 /= s
+            cluster_mean_j.c2 /= s
+            cluster_mean_j.l /= s
+            cluster_mean_j.r /= s
+
+            cluster_variance_j = FuzzyNumber(0, 0, 0, 0)
+            for i in range(data_size):
+                cluster_variance_j.c1 += membership_degrees[i][k] * (fdata[i][j].c1 - cluster_mean_j.c1) ** 2
+                cluster_variance_j.c2 += membership_degrees[i][k] * (fdata[i][j].c2 - cluster_mean_j.c2) ** 2
+                cluster_variance_j.l += membership_degrees[i][k] * (fdata[i][j].l - cluster_mean_j.l) ** 2
+                cluster_variance_j.r += membership_degrees[i][k] * (fdata[i][j].r - cluster_mean_j.r) ** 2
+            cluster_variance_j.c1 /= s
+            cluster_variance_j.c2 /= s
+            cluster_variance_j.l /= s
+            cluster_variance_j.r /= s
+
+            delta = FuzzyNumber(
+                math.sqrt(cluster_variance_j.c1) / math.sqrt(s) * 1.64,
+                math.sqrt(cluster_variance_j.c2) / math.sqrt(s) * 1.64,
+                math.sqrt(cluster_variance_j.l) / math.sqrt(s) * 1.64,
+                math.sqrt(cluster_variance_j.r) / math.sqrt(s) * 1.64)
+
+            fp.write("    c1 = (%.2f - %.2f)  " % (cluster_mean_j.c1 - delta.c1, cluster_mean_j.c1 + delta.c1))
+            fp.write("    c2 = (%.2f - %.2f)  " % (cluster_mean_j.c2 - delta.c2, cluster_mean_j.c2 + delta.c2))
+            fp.write("    l  = (%.2f - %.2f)  " % (cluster_mean_j.l - delta.l, cluster_mean_j.l + delta.l))
+            fp.write("    r  = (%.2f - %.2f)  " % (cluster_mean_j.r - delta.r, cluster_mean_j.r + delta.r))
+            fp.write("\n")
 
 
 
@@ -366,13 +409,13 @@ with open("clustering_result.txt", "wt") as fp:
     #             fp.write("%.2f " % fuzzy_distance_component(centers[k], centers[l], wc, ws, i))
     #         fp.write("\n")
     #
-    spreads = []  # среднеквадратичные разбросы внутри каждого кластера
-    for cluster in range(clust_c):
-        rms = 0
-        for point in range(data_size):
-            rms += membership_degrees[point][cluster] * fuzzy_distance(fdata[point], centers[cluster], wc, ws) ** 2
-        rms = math.sqrt(rms / data_size)
-        spreads.append(rms)
-    fp.write("\nРазбросы внутри кластеров:\n")
-    for i in range(clust_c):
-        fp.write("%.2f  " % spreads[i])
+    # spreads = []  # среднеквадратичные разбросы внутри каждого кластера
+    # for cluster in range(clust_c):
+    #     rms = 0
+    #     for point in range(data_size):
+    #         rms += membership_degrees[point][cluster] * fuzzy_distance(fdata[point], centers[cluster], wc, ws) ** 2
+    #     rms = math.sqrt(rms / data_size)
+    #     spreads.append(rms)
+    # fp.write("\nРазбросы внутри кластеров:\n")
+    # for i in range(clust_c):
+    #     fp.write("%.2f  " % spreads[i])
