@@ -347,7 +347,6 @@ with open("clustering_result.txt", "wt") as fp:
     for j in range(dim):
         fp.write("Компонента %d: доверительный интервал для среднего\n" % (j + 1))
         for k in range(clust_c):
-            fp.write("  Кластер %d\n" % (k + 1))
             # считаем среднее и дисперсию с учетом мер принадлежности по всем точкам выборки
             s = 0
             for i in range(data_size):
@@ -381,11 +380,27 @@ with open("clustering_result.txt", "wt") as fp:
                 math.sqrt(cluster_variance_j.l) / math.sqrt(s) * 1.64,
                 math.sqrt(cluster_variance_j.r) / math.sqrt(s) * 1.64)
 
-            fp.write("    c1 = (%.2f - %.2f)  " % (cluster_mean_j.c1 - delta.c1, cluster_mean_j.c1 + delta.c1))
-            fp.write("    c2 = (%.2f - %.2f)  " % (cluster_mean_j.c2 - delta.c2, cluster_mean_j.c2 + delta.c2))
-            fp.write("    l  = (%.2f - %.2f)  " % (cluster_mean_j.l - delta.l, cluster_mean_j.l + delta.l))
-            fp.write("    r  = (%.2f - %.2f)  " % (cluster_mean_j.r - delta.r, cluster_mean_j.r + delta.r))
-            fp.write("\n")
+            confidence_left = FuzzyNumber(
+                cluster_mean_j.c1 - delta.c1,
+                cluster_mean_j.c2 - delta.c2,
+                cluster_mean_j.l - delta.l,
+                cluster_mean_j.r - delta.r)
+            confidence_right = FuzzyNumber(
+                cluster_mean_j.c1 + delta.c1,
+                cluster_mean_j.c2 + delta.c2,
+                cluster_mean_j.l + delta.l,
+                cluster_mean_j.r + delta.r)
+            median_confidence_left = (confidence_left.c1 + confidence_left.c2) / 2 + (confidence_left.r - confidence_right.l) / 4
+            median_confidence_right = (confidence_right.c1 + confidence_right.c2) / 2 + (confidence_right.r - confidence_left.l) / 4
+            
+            fp.write("  Кластер %d :  (%.2f - %.2f)\n" % (k + 1, median_confidence_left, median_confidence_right))
+                
+
+            #fp.write("    c1 = (%.2f - %.2f)  " % (cluster_mean_j.c1 - delta.c1, cluster_mean_j.c1 + delta.c1))
+            #fp.write("    c2 = (%.2f - %.2f)  " % (cluster_mean_j.c2 - delta.c2, cluster_mean_j.c2 + delta.c2))
+            #fp.write("    l  = (%.2f - %.2f)  " % (cluster_mean_j.l - delta.l, cluster_mean_j.l + delta.l))
+            #fp.write("    r  = (%.2f - %.2f)  " % (cluster_mean_j.r - delta.r, cluster_mean_j.r + delta.r))
+            #fp.write("\n")
 
 
 
