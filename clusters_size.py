@@ -1,6 +1,6 @@
 n = 3  # число кластеров
 
-data_size = 659
+data_size = 139
 
 def read_floats (file_name, num_rows, num_cols):
     a = []
@@ -33,3 +33,16 @@ with open("count.txt", "wt") as fp:
             fp.write(" ")
         fp.write("\n")
 
+with open("points.txt", "wt") as fp:
+    threshold = 0.7
+    points_to_cluster = [[] for _ in range(n)]
+    for k in range(data_size):
+        for i in range(n):
+            if u[k][i] > threshold:
+                points_to_cluster[i].append(k + 1)
+    fp.write("Точки, отнесенные к кластерам:\n")
+    for i in range(n):
+        fp.write("Кластер %d:\n" % (i + 1))
+        for p in points_to_cluster[i]:
+            fp.write("%d " % p)
+        fp.write("\n")
