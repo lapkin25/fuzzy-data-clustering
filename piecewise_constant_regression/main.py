@@ -3,6 +3,7 @@ from scipy.optimize import minimize
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 from regression import *
+from fuzzy_multivariate_regression import *
 
 def read_data(file_name, rows, cols):
     # чтение входных данных
@@ -54,6 +55,18 @@ def f(w):
     print("J =", J, " R2 =", R2)
     return J
 
+# определяет сумму квадратов отклонений для кусочно-постоянной регрессии
+#   y на x, где x = w1*x1 + ... + wp*xp
+def g(w):
+    x = np.array([np.dot(data_x[i, :] ** alpha, w) ** beta for i in range(data_size)])
+    y = data_y
+    partition = fuzzy_points_partition(x, y, x_ranges_num)
+    u = compute_u(partition, x)
+    fuzzy_plot_points_partition(x, y, partition, u)
+    _, J, R2 = fuzzy_partition_summary(x, y, u)
+    #print("w =", w)
+    print("J =", J, " R2 =", R2)
+    return J
 
 data_x = np.array(compet[0])
 #print("data_x = ", data_x)
@@ -64,7 +77,8 @@ reg = LinearRegression().fit(data_x, data_y)
 w0 = reg.coef_ #np.array([0] * compet_num)
 lin_reg_R2 = r2_score(data_y, reg.predict(data_x))
 print("LinR2 = ", lin_reg_R2)
-res = minimize(f, w0, method='Nelder-Mead')
+#res = minimize(f, w0, method='Nelder-Mead')
+res = minimize(g, w0, method='Nelder-Mead')
 
 
 
