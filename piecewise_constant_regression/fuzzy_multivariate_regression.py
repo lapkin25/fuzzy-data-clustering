@@ -1,6 +1,7 @@
 # Множественная кусочно-постоянная регрессия с нечетким целевым функционалом
 
 import numpy as np
+from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 from regression import sort_points, points_partition,\
     sum_of_squares_of_deviations_from_mean
@@ -31,21 +32,30 @@ def compute_u(t, x):
                 elif x[i] > a[0] and x[i] <= a[1]:
                     u_val = (a[1] - x[i]) / (a[1] - a[0])
                 else:
-                    u_val = 0
+                    if x_min <= t[0]:
+                        u_val = 0
+                    else:
+                        u_val = 1  # штраф
             elif k == m - 1:
                 if x[i] >= a[m - 1]:
                     u_val = 1
                 elif x[i] >= a[m - 2] and x[i] < a[m - 1]:
                     u_val = (x[i] - a[m - 2]) / (a[m - 1] - a[m - 2])
                 else:
-                    u_val = 0
+                    if x_max >= t[m - 2]:
+                        u_val = 0
+                    else:
+                        u_val = 1  # штраф
             else:  # 0 < k < m - 1
                 if x[i] >= a[k - 1] and x[i] <= a[k]:
                     u_val = (x[i] - a[k - 1]) / (a[k] - a[k - 1])
                 elif x[i] >= a[k] and x[i] <= a[k + 1]:
                     u_val = (a[k + 1] - x[i]) / (a[k + 1] - a[k])
                 else:
-                    u_val = 0
+                    if t[k - 1] <= t[k]:
+                        u_val = 0
+                    else:
+                        u_val = 1  # штраф
             u[i, k] = u_val
     return u
 
@@ -298,10 +308,23 @@ def fuzzy_partition_summary(x, y, u):
 def fuzzy_points_partition(x_unsorted, y_unsorted, m):
     # вызываем функцию четкого разбиения, берем найденное разбиение
     #   в качестве начального приближения
-    t = points_partition(x_unsorted, y_unsorted, m)
+    t0 = points_partition(x_unsorted, y_unsorted, m)
+    def h(t):
+        #t.sort() - вместо этого надо добавить штраф за нарушение порядка
+        #print(t)
+        _, J, _ = fuzzy_partition_summary(x_unsorted, y_unsorted, compute_u(t, x_unsorted))
+       # print("  ", J)
+        return J
+        #return fuzzy_partition_summary(x_unsorted, y_unsorted, compute_u(t, x_unsorted))[1]
+    res = minimize(h, t0)
+    print("  t = ", res.x)
+    return res.x
+
+"""
     # возвращаем "четкое" разбиение в качестве оптимального,
     # а функционал от него будет вычисляться как нечеткий
     return t
+"""
 """
     # пока разбиение не перестанет изменяться,
     #   находим меры принадлежности для текущего разбиения
