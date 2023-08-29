@@ -2,6 +2,7 @@ import csv
 from scipy.optimize import minimize
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
+import math
 from regression import *
 from fuzzy_multivariate_regression import *
 
@@ -43,6 +44,7 @@ for t in range(t_num):
     kpi[t] = read_data(kpi_files[t], data_size, kpi_num)
 
 
+
 # определяет сумму квадратов отклонений для кусочно-постоянной регрессии
 #   y на x, где x = w1*x1 + ... + wp*xp
 def f(w):
@@ -58,19 +60,30 @@ def f(w):
 # определяет сумму квадратов отклонений для кусочно-постоянной регрессии
 #   y на x, где x = w1*x1 + ... + wp*xp
 def g(w):
-    x = np.array([np.dot(data_x[i, :] ** alpha, w) ** beta for i in range(data_size)])
+    x = np.array([np.dot(data_x[i, :], w) for i in range(data_size)])
     y = data_y
     partition = fuzzy_points_partition(x, y, x_ranges_num)
     u = compute_u(partition, x)
+#    c = compute_c(u, y)
+#    _, J, R2 = fuzzy_partition_summary(x, y, u)
+#    print("J0 =", J)
+#    partition = points_partition_given_avg(x, y, x_ranges_num, c)
+#    u = compute_u(partition, x)
     fuzzy_plot_points_partition(x, y, partition, u)
     _, J, R2 = fuzzy_partition_summary(x, y, u)
     #print("w =", w)
     print("J =", J, " R2 =", R2)
     return J
 
-data_x = np.array(compet[0])
+data_x = np.array(compet[4])
+#x_transform = lambda x: math.log(x + 1)
+#№v_x_transform = np.vectorize(x_transform)
+#data_x = v_x_transform(data_x)
 #print("data_x = ", data_x)
-data_y = np.array([kpi[0][i][0] for i in range(data_size)])
+data_y = np.array([kpi[4][i][0] for i in range(data_size)])
+#y_transform = lambda y: math.log(y)
+#v_y_transform = np.vectorize(y_transform)
+#data_y = v_y_transform(data_y)
 #print("data_y = ", data_y)
 
 reg = LinearRegression().fit(data_x, data_y)

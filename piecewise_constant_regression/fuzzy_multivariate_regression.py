@@ -183,6 +183,85 @@ def weighted_points_partition_given_u_avg(x_unsorted, y_unsorted, m, u_unsorted,
     return t
 
 
+def points_partition_given_avg(x_unsorted, y_unsorted, m, avg):
+    x, y = sort_points(x_unsorted, y_unsorted)
+    n = len(x)
+
+    # Подзадача с параметрами (i, k):
+    #   разбить точки 0..i на k диапазонов так, чтобы
+    #   минимизировать сумму квадратов отклонений y от среднего по диапазону
+    # Решение подзадачи:
+    #   f[i, k] - найденное значение минимума функционала
+    #   c[i, k] - число точек в самом правом диапазоне
+    # Здесь i = 0..n-1, k = 1..m
+    f = np.array([[None for k in range(m + 1)] for i in range(n)])
+    c = np.array([[None for k in range(m + 1)] for i in range(n)])
+
+    # Инициализация: единственный диапазон (k = 1)
+    # для i = 0..n-1:
+    #   f[i, 1] = взвешенная сумма квадратов отклонений от среднего y с 0-й точки до i-й
+    #   c[i, 1] = i + 1
+    #   sum_u_y[i][k] = сумма u[i'][k] * y[i'] по i' от 0 до i
+    #   sum_sq_y[i] = сумма y[0..i]^2
+    #   sum_u[i][k] = сумма u[i'][k] по i' от 0 до i
+    sum_y = [0 for i in range(n)]
+    sum_sq_y = [0 for i in range(n)]
+    sum_y[0] = y[0]
+    sum_sq_y[0] = y[0] ** 2
+    for i in range(1, n):
+        sum_sq_y[i] = sum_sq_y[i - 1] + y[i] ** 2
+        sum_y[i] = sum_y[i - 1] + y[i]
+    for i in range(n):
+        f[i, 1] = sum_sq_y[i] - 2 * avg[0] * sum_y[i] + (i + 1) * avg[0] ** 2
+        #f[i, 1] = sum_of_squares_of_deviations_from_mean(y[:i+1])
+        c[i, 1] = i + 1
+
+    # для k = 1..m-1 для i = 0..n-1:
+    #   имея решение подзадачи (i, k),
+    #   пробуем улучшить решение подзадачи (i + j, k + 1),
+    #   добавив (k + 1)-й диапазон из j точек с (i+1)-й до (i+j)-й (j = 0..n-i-1)
+    for k in range(1, m):
+        for i in range(n):
+            # решение подзадачи (i, k) найдено, результаты хранятся в f[i, k] и c[i, k]
+            for j in range(n - i):
+                if j == 0:
+                    sum_sq_mean_dev = 0
+                else:
+                    sum_sq_mean_dev = (sum_sq_y[i + j] - sum_sq_y[i])\
+                        - 2 * avg[k] * (sum_y[i + j] - sum_y[i]) + j * avg[k] ** 2
+                f_new = f[i, k] + sum_sq_mean_dev
+                #f_new = f[i, k] + sum_of_squares_of_deviations_from_mean(y[i+1:i+j+1])
+                if f[i + j, k + 1] is None or f_new < f[i + j, k + 1]:
+                    f[i + j, k + 1] = f_new
+                    c[i + j, k + 1] = j
+
+    t = [None for k in range(m - 1)]
+    # для k от m-1 до 1 (с шагом -1):
+    #   находим левую границу (x-координату) k-го диапазона - t[k-1]
+    #   (индексация диапазонов с нуля)
+    j = n - 1  # индекс последней точки k-го диапазона
+    for k in range(m - 1, 0, -1):
+        # c[j, k + 1] - число точек в k-м диапазоне
+        # j - c[j, k + 1] + 1 - индекс первой точки k-го диапазона
+        if j == -1 or c[j, k + 1] == 0:
+            # редкий случай, когда k-й диапазон не содержит точек
+            if k == m - 1:
+                t[k - 1] = x[n - 1]  # ещё нужно прибавить положительное слагаемое
+            else:
+                t[k - 1] = t[k]
+        else:
+            ind_first = j - c[j, k + 1] + 1
+            if ind_first == 0:
+                t[k - 1] = x[ind_first]
+            else:
+                t[k - 1] = (x[ind_first] + x[ind_first - 1]) / 2
+            j = ind_first - 1
+
+    #print(t)
+    #print("f = ", f[n - 1, m])
+    return t
+
+
 # Возвращает средние значения для каждого диапазона,
 #   взвешенную сумму квадратов отклонений и коэффициент детерминации
 def fuzzy_partition_summary(x, y, u):
@@ -220,6 +299,10 @@ def fuzzy_points_partition(x_unsorted, y_unsorted, m):
     # вызываем функцию четкого разбиения, берем найденное разбиение
     #   в качестве начального приближения
     t = points_partition(x_unsorted, y_unsorted, m)
+    # возвращаем "четкое" разбиение в качестве оптимального,
+    # а функционал от него будет вычисляться как нечеткий
+    return t
+"""
     # пока разбиение не перестанет изменяться,
     #   находим меры принадлежности для текущего разбиения
     #   и вычисляем оптимальное нечеткое разбиение с новыми u_{ik}
@@ -244,6 +327,7 @@ def fuzzy_points_partition(x_unsorted, y_unsorted, m):
                 break
     print("Найденные границы:", t)
     return t
+"""
 
 
 def fuzzy_plot_points_partition(data_x, data_y, t, u):
