@@ -6,6 +6,7 @@ import math
 from regression import *
 from fuzzy_multivariate_regression import *
 from optimal_partition import fuzzy_optimal_partition
+from pwc_regression import multivariate_pwc_regression
 
 def read_data(file_name, rows, cols):
     # чтение входных данных
@@ -102,14 +103,19 @@ reg = LinearRegression().fit(data_x, data_y)
 w0 = reg.coef_ #np.array([0] * compet_num)
 lin_reg_R2 = r2_score(data_y, reg.predict(data_x))
 print("LinR2 = ", lin_reg_R2)
+
+#w, t, J = multivariate_pwc_regression(data_x, data_y, x_ranges_num)
+w = multivariate_pwc_regression(data_x, data_y, x_ranges_num)
 #res = minimize(f, w0, method='Nelder-Mead')
-res = minimize(g, w0, method='Nelder-Mead') #tol=0.1, options={'disp': True, 'maxiter': 10})
-w = res.x
+#res = minimize(g, w0, method='Powell') #tol=0.1, options={'disp': True, 'maxiter': 10})
+#w = res.x
 xx = np.array([np.dot(data_x[i, :], w) for i in range(data_size)])
 t0 = points_partition(xx, data_y, x_ranges_num)
 tt = fuzzy_optimal_partition(xx, data_y, x_ranges_num, t0, 100, 0.03)
 uu = compute_u(tt, xx)
 fuzzy_plot_points_partition(xx, data_y, tt, uu)
+_, J, R2 = fuzzy_partition_summary(xx, data_y, uu)
+print("Значение нечеткого функционала: ", J, " R2 =", R2)
 
 
 """
