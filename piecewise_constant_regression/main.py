@@ -5,6 +5,7 @@ from sklearn.metrics import r2_score
 import math
 from regression import *
 from fuzzy_multivariate_regression import *
+from optimal_partition import fuzzy_optimal_partition
 
 def read_data(file_name, rows, cols):
     # чтение входных данных
@@ -29,7 +30,7 @@ compet_num = 38  # число компетенций
 kpi_num = 4  # число ключевых показателей
 data_size = 219
 
-x_ranges_num = 7  # число диапазонов взвешенной суммы
+x_ranges_num = 6  # число диапазонов взвешенной суммы
 alpha = 1  # степенной параметр при компетенциях
 beta = 1  # степенной параметр при взвешенной сумме
 
@@ -62,17 +63,28 @@ def f(w):
 def g(w):
     x = np.array([np.dot(data_x[i, :], w) for i in range(data_size)])
     y = data_y
-    t = fuzzy_points_partition(x, y, x_ranges_num)
-    u = compute_u(t, x)
+    iter_num = 70
+    lam = 0.03
+    t0 = points_partition(x, y, x_ranges_num)
+
+    #print(t0)
+#       t = fuzzy_points_partition(x, y, x_ranges_num)
+#       u = compute_u(t, x)
 #    c = compute_c(u, y)
 #    _, J, R2 = fuzzy_partition_summary(x, y, u)
 #    print("J0 =", J)
 #    partition = points_partition_given_avg(x, y, x_ranges_num, c)
 #    u = compute_u(partition, x)
-   # fuzzy_plot_points_partition(x, y, t, u)
+#    fuzzy_plot_points_partition(x, y, t, u)
+#       _, J, R2 = fuzzy_partition_summary(x, y, u)
+#       print("Оптимизация встроенным методом:  J =", J, " R2 =", R2)
+    t = fuzzy_optimal_partition(x, y, x_ranges_num, t0, iter_num, lam)
+    u = compute_u(t, x)
     _, J, R2 = fuzzy_partition_summary(x, y, u)
-    #print("w =", w)
-    print("J =", J, " R2 =", R2)
+    print("Оптимизация градиентным методом:  J =", J, " R2 =", R2)
+
+    #print(t)
+    #fuzzy_plot_points_partition(x, y, t, u)
     return J
 
 data_x = np.array(compet[0])
@@ -91,8 +103,13 @@ w0 = reg.coef_ #np.array([0] * compet_num)
 lin_reg_R2 = r2_score(data_y, reg.predict(data_x))
 print("LinR2 = ", lin_reg_R2)
 #res = minimize(f, w0, method='Nelder-Mead')
-res = minimize(g, w0, method='Nelder-Mead')
-
+res = minimize(g, w0, method='Nelder-Mead') #tol=0.1, options={'disp': True, 'maxiter': 10})
+w = res.x
+xx = np.array([np.dot(data_x[i, :], w) for i in range(data_size)])
+t0 = points_partition(xx, data_y, x_ranges_num)
+tt = fuzzy_optimal_partition(xx, data_y, x_ranges_num, t0, 100, 0.03)
+uu = compute_u(tt, xx)
+fuzzy_plot_points_partition(xx, data_y, tt, uu)
 
 
 """
