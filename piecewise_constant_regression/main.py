@@ -7,6 +7,7 @@ from regression import *
 from fuzzy_multivariate_regression import *
 from optimal_partition import fuzzy_optimal_partition
 from pwc_regression import multivariate_pwc_regression
+from fuzzy_pwc_regression import fuzzy_multivariate_pwc_regression
 
 def read_data(file_name, rows, cols):
     # чтение входных данных
@@ -104,6 +105,13 @@ w0 = reg.coef_ #np.array([0] * compet_num)
 lin_reg_R2 = r2_score(data_y, reg.predict(data_x))
 print("LinR2 = ", lin_reg_R2)
 
+t0 =  [44.80370994383878, 66.54591318583549, 67.75642233952557, 82.8914899975313, 97.37910423875782]
+w0 = [0.957013397157085, 1.4530371371926596, -1.9430914937781096, 1.8625149593641188, -1.8678561516532322, 1.3016197473626667, 0.8173777586177537, -1.3507362248026025, 0.8469441955659865, 3.9641431284661, 3.3231763521483213, -0.5925889684422266, 0.04780123134677039, 1.6093011981218293, -1.5754040423916504, 1.7539252135389027, 2.2207736436106384, 3.9145364487080765, 3.300458298829502, 1.1073750344183648, 2.763905833494696, -0.7462810301969082, 2.0153575473084113, -0.9248260311110151, 1.2699145395967022, 0.6926809695046481, 1.7143917864156577, -2.0667323345495476, 1.8742666398402588, 2.885207128385393, 0.22890997162607707, 2.3510663917103076, -2.3753208350494286, -5.159981827060327, 3.839323856254133, 0.24535954044919064, 2.076059960197496, 2.9980501925399894]
+w, t = fuzzy_multivariate_pwc_regression(data_x, data_y, x_ranges_num, 5, w0, t0)
+print(list(w))
+print(list(t))
+
+"""
 #w, t, J = multivariate_pwc_regression(data_x, data_y, x_ranges_num)
 w = multivariate_pwc_regression(data_x, data_y, x_ranges_num)
 #res = minimize(f, w0, method='Nelder-Mead')
@@ -116,7 +124,7 @@ uu = compute_u(tt, xx)
 fuzzy_plot_points_partition(xx, data_y, tt, uu)
 _, J, R2 = fuzzy_partition_summary(xx, data_y, uu)
 print("Значение нечеткого функционала: ", J, " R2 =", R2)
-
+"""
 
 """
 data_x = np.array([1, -1, 0, -2, 3, 5])

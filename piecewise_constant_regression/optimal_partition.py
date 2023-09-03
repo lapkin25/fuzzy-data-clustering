@@ -73,7 +73,7 @@ def calc_J(t, x, y):
     m = len(t) + 1  # количество диапазонов
     x_min = min(x)
     x_max = max(x)
-    s = 0
+    s = 0.0
     for k in range(m):
         c_k = calc_c_k(t, k, x, y)
         for i in range(n):
@@ -193,8 +193,10 @@ def calc_derivatives_J_t_check(t, x, y):
 def fuzzy_optimal_partition(x, y, m, t0, iter_num, lam):
     t = t0.copy()
     J_pred = calc_J(t, x, y)
+    t_pred = t.copy()
     cnt = 0
-    for _ in range(iter_num):
+    for it in range(iter_num):
+        # TODO: прокомментировать алгоритм
         J_t = calc_derivatives_J_t(t, x, y)
 
         #J_t_check = calc_derivatives_J_t_check(t, x, y)
@@ -213,13 +215,16 @@ def fuzzy_optimal_partition(x, y, m, t0, iter_num, lam):
         J = calc_J(t, x, y)
         if J < J_pred:
             cnt += 1
-            if cnt == 3:
+            if cnt == 5:
                 lam *= 1.3
                 cnt = 0
+            t_pred = t.copy()
+            J_pred = J
         else:
             lam /= 1.5
             cnt = 0
-        J_pred = J
-        #print(t)
-      #  print("J =", J)
+            t = t_pred.copy()
+        print("   iteration", it)
+        print("   t = ", t)
+        print("   J =", J)
     return t
