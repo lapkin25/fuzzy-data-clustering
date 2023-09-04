@@ -400,8 +400,8 @@ def fuzzy_plot_points_partition_coloured(data_x, data_y, t, u, cvalue):
             x1 = t[i - 1]
             x2 = t[i]
         plt.plot([x1, x2], [avg_y[i], avg_y[i]], 'b', linestyle='dashed')
-    plt.xlabel("x")
-    plt.ylabel("y")
+    plt.xlabel("Интегральный показатель компетенций")
+    plt.ylabel("Показатель KPI")
     plt.show()
 
 

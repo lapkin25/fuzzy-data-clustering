@@ -44,4 +44,6 @@ def plot_weighted_regression(x, y, u, w, w0):
     wsum_x = w0 + np.dot(x, np.transpose(w))
     plt.scatter(wsum_x, y, c=u, cmap='Reds')
     plt.plot([np.min(wsum_x), np.max(wsum_x)], [np.min(wsum_x), np.max(wsum_x)])
+    plt.xlabel("Интегральный показатель выгорания")
+    plt.ylabel("Показатель KPI")
     plt.show()
