@@ -35,7 +35,7 @@ def fuzzy_multivariate_pwc_regression(x_panel, y_unsorted, m, iter_num, w0, t0):
         #if start_flag:
             # берем четкое разбиение в качестве начального приближения
         #    t = points_partition(x_unsorted, y_unsorted, m)
-        t = fuzzy_optimal_partition(x_unsorted, y_unsorted, m, t, 300, 0.02)
+        t = fuzzy_optimal_partition(x_unsorted, y_unsorted, m, t, 500, 0.02)
 
         print("t =", t)
 

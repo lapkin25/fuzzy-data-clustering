@@ -118,7 +118,7 @@ def multivariate_pwc_regression(x_panel, y_unsorted, m):
     reg = LinearRegression().fit(x_panel, y_unsorted)
     w0 = reg.coef_  # начальное приближение
 
-    iter_num = 10  # количество итераций
+    iter_num = 1 #10  # количество итераций
     z = np.array([0.0 for i in range(n)])
     v = np.array([0.0 for i in range(n)])
     w = w0.copy()
