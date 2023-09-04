@@ -27,7 +27,7 @@ def read_data(file_name, rows, cols):
         data[i] = list(map(float, data_str[i]))
         assert(len(data[i]) == cols)
 
-    return data
+    return np.array(data)
 
 
 t_num = 5  # число моментов времени
@@ -168,11 +168,19 @@ _, J, R2 = fuzzy_partition_summary(xx, data_y, uu)
 print("Значение нечеткого функционала: ", J, " R2 =", R2)
 """
 
+x1 = np.array([np.dot(data_x[i, :], w) for i in range(data_size)])
+u1 = compute_u(t, x1)
+
+fuzzy_plot_points_partition_coloured(x1, data_y, t, u1, data_z)
+_, J, R2 = fuzzy_partition_summary(x1, data_y, u1)
+print("Значение нечеткого функционала: ", J, " R2 =", R2)
+
 
 #w, w0 = calc_weighted_regression(data_burnout, data_y, uu[:, 0])
 #print("w =", w)
 #print("w0 =", w0)
 
+"""
 # выгорание по всем моментам времени
 full_data_burnout = []
 for tm in range(t_num):
@@ -191,8 +199,6 @@ for tm in range(t_num):
     else:
         full_data_kpi = np.concatenate((full_data_kpi, new_kpi), axis=0)
 # мера принадлежности k-му диапазону компетенций по всем моментам времени
-x1 = np.array([np.dot(data_x[i, :], w) for i in range(data_size)])
-u1 = compute_u(t, x1)
 full_u = []
 for tm in range(t_num):
     if tm == 0:
@@ -200,7 +206,27 @@ for tm in range(t_num):
     else:
         full_u = np.concatenate((full_u, u1), axis=0)
 
-print(full_data_burnout.shape)
+#print(full_data_burnout.shape)
+"""
+
+
+# Усредняем показатели по времени
+# среднее выгорание по времени
+for tm in range(t_num):
+    if tm == 0:
+        avg_burnout = burnout[0]
+    else:
+        avg_burnout += burnout[tm]
+avg_burnout /= t_num
+# средний KPI по времени
+for tm in range(t_num):
+    new_kpi = np.array([kpi[tm][i][KPI_ind] for i in range(data_size)])
+    if tm == 0:
+        avg_kpi = new_kpi
+    else:
+        avg_kpi += new_kpi
+avg_kpi /= t_num
+
 
 """
 # строит график для k-го диапазона компетенций
@@ -209,15 +235,25 @@ def plot_kpi_burnout_for_compet_range(k):
     plot_weighted_regression(data_burnout[uu[:, k] != 0], data_y[uu[:, k] != 0], uu[uu[:, k] != 0, k], w, w0)
 """
 
+"""
 # строит график для k-го диапазона компетенций
 def plot_kpi_burnout_for_compet_range(k):
     w, w0 = calc_weighted_regression(full_data_burnout, full_data_kpi, full_u[:, k])
     plot_weighted_regression(full_data_burnout[full_u[:, k] != 0],
                              full_data_kpi[full_u[:, k] != 0],
                              full_u[full_u[:, k] != 0, k], w, w0)
+"""
+
+# строит график для k-го диапазона компетенций
+def plot_kpi_burnout_for_compet_range(k):
+    w, w0 = calc_weighted_regression(avg_burnout, avg_kpi, u1[:, k])
+    plot_weighted_regression(avg_burnout[u1[:, k] != 0],
+                             avg_kpi[u1[:, k] != 0],
+                             u1[u1[:, k] != 0, k], w, w0)
+
 
 #plot_weighted_regression(data_burnout[uu[:, 0] != 0], data_y[uu[:, 0] != 0], uu[uu[:, 0] != 0, 0], w, w0)
-plot_kpi_burnout_for_compet_range(3)
+plot_kpi_burnout_for_compet_range(1)
 
 
 
