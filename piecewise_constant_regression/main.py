@@ -141,7 +141,9 @@ fuzzy_plot_points_partition_coloured(xx, data_y, t, uu, data_z)
 _, J, R2 = fuzzy_partition_summary(xx, data_y, uu)
 print("Значение нечеткого функционала: ", J, " R2 =", R2)
 
-calc_weighted_regression(data_burnout, data_y, uu[:, 0])
+w, w0 = calc_weighted_regression(data_burnout, data_y, uu[:, 0])
+print("w =", w)
+print("w0 =", w0)
 
 """
 data_x = np.array([1, -1, 0, -2, 3, 5])

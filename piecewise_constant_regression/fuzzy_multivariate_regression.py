@@ -381,7 +381,8 @@ def fuzzy_plot_points_partition(data_x, data_y, t, u):
 def fuzzy_plot_points_partition_coloured(data_x, data_y, t, u, cvalue):
     avg_y, _, _ = fuzzy_partition_summary(data_x, data_y, u)
     #plt.plot(data_x, data_y, 'ro', c=cvalue, cmap='gray')
-    plt.scatter(data_x, data_y, c=cvalue, cmap='Greys')
+    #plt.scatter(data_x, data_y, c=cvalue, cmap='Greys')
+    plt.scatter(data_x, data_y, c=cvalue, cmap='Reds')
     min_x = np.min(data_x)
     max_x = np.max(data_x)
     min_y = np.min(data_y)

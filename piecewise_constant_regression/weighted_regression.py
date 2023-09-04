@@ -4,6 +4,9 @@ from sklearn.linear_model import LinearRegression
 import statsmodels.api as sm
 
 
+# Возвращает два объекта:
+#   массив коэффициентов при признаках
+#   и число - свободный член
 def calc_weighted_regression(x, y, u):
     # обычная регрессия - проверка
     #print(x)
@@ -25,4 +28,7 @@ def calc_weighted_regression(x, y, u):
     reg_weighted = sm.WLS(y1, x1, weights=u1).fit()
     #print(u1)
     #reg_weighted = sm.WLS(y1, x1).fit()
-    print(reg_weighted.summary())
+    #print(reg_weighted.summary())
+    #print(reg_weighted.params)
+    params = reg_weighted.params
+    return params[1:], params[0]
