@@ -2,8 +2,14 @@
 
 from sklearn.linear_model import LinearRegression
 import statsmodels.api as sm
+import matplotlib.pyplot as plt
+import numpy as np
 
 
+# Принимает на вход:
+#   двумерный массив x (x[i, k] - k-я компонента i-й точки)
+#   одномерный массив y (y[i] - координата i-й точки)
+#   веса (u[i] - вес i-й точки)
 # Возвращает два объекта:
 #   массив коэффициентов при признаках
 #   и число - свободный член
@@ -32,3 +38,10 @@ def calc_weighted_regression(x, y, u):
     #print(reg_weighted.params)
     params = reg_weighted.params
     return params[1:], params[0]
+
+
+def plot_weighted_regression(x, y, u, w, w0):
+    wsum_x = w0 + np.dot(x, np.transpose(w))
+    plt.scatter(wsum_x, y, c=u, cmap='Reds')
+    plt.plot([np.min(wsum_x), np.max(wsum_x)], [np.min(wsum_x), np.max(wsum_x)])
+    plt.show()

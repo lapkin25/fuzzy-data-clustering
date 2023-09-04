@@ -8,7 +8,8 @@ from fuzzy_multivariate_regression import *
 from optimal_partition import fuzzy_optimal_partition
 from pwc_regression import multivariate_pwc_regression
 from fuzzy_pwc_regression import fuzzy_multivariate_pwc_regression
-from weighted_regression import calc_weighted_regression
+from weighted_regression import calc_weighted_regression,\
+    plot_weighted_regression
 
 
 def read_data(file_name, rows, cols):
@@ -144,6 +145,7 @@ print("Значение нечеткого функционала: ", J, " R2 ="
 w, w0 = calc_weighted_regression(data_burnout, data_y, uu[:, 0])
 print("w =", w)
 print("w0 =", w0)
+plot_weighted_regression(data_burnout[uu[:, 0] != 0], data_y[uu[:, 0] != 0], uu[uu[:, 0] != 0, 0], w, w0)
 
 """
 data_x = np.array([1, -1, 0, -2, 3, 5])
