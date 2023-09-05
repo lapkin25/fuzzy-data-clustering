@@ -48,6 +48,6 @@ def fuzzy_multivariate_pwc_regression(x_panel, y_unsorted, m, iter_num, w0, t0):
             print(J)
             return J
 
-        res = minimize(f, w)
+        res = minimize(f, w)  #, method='Nelder-Mead')
         w = res.x
     return w, t
