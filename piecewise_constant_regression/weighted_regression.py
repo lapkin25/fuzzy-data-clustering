@@ -4,6 +4,7 @@ from sklearn.linear_model import LinearRegression
 import statsmodels.api as sm
 import matplotlib.pyplot as plt
 import numpy as np
+import math
 
 
 # Принимает на вход:
@@ -31,12 +32,16 @@ def calc_weighted_regression(x, y, u):
     #reg1 = sm.OLS(y1, x1).fit()
     #print(reg1.summary())
 
-    reg_weighted = sm.WLS(y1, x1, weights=u1).fit()
+    reg_weighted = sm.WLS(y1, x1, weights=u1)
+    reg_weighted_fitted = reg_weighted.fit()
     #print(u1)
     #reg_weighted = sm.WLS(y1, x1).fit()
     #print(reg_weighted.summary())
     #print(reg_weighted.params)
-    params = reg_weighted.params
+    params = reg_weighted_fitted.params
+    #print(reg_weighted.predict(params))
+    print("взвешенная сумма квадратов отклонений =", np.sum(np.dot(u1, (reg_weighted.predict(params) - y1) ** 2)))
+    print("корень из среднего квадрата =", math.sqrt(np.sum(np.dot(u1, (reg_weighted.predict(params) - y1) ** 2)) / np.sum(u1)))
     return params[1:], params[0]
 
 
