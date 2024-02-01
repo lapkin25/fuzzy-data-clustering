@@ -6,7 +6,8 @@ import math
 from regression import points_partition
 from optimal_partition import fuzzy_optimal_partition
 from correspondence_matrix import calc_correspondence_matrix, calc_reduced_correspondence_matrix
-from fuzzy_min_entropy import fuzzy_min_entropy
+from fuzzy_min_entropy import fuzzy_min_entropy, fuzzy_min_entropy_t_crisp
+from fuzzy_multivariate_regression import compute_u, fuzzy_plot_points_partition, fuzzy_plot_points_partition_coloured
 
 
 def read_data(file_name, rows, cols):
@@ -89,9 +90,15 @@ print(mat)
 print("J =", J)
 """
 
-w, t = fuzzy_min_entropy(data_x, data_y, data_z, x_ranges_num, 3, w0, t0)
+#w, t = fuzzy_min_entropy(data_x, data_y, data_z, x_ranges_num, 1, w0, t0)
+w, t = fuzzy_min_entropy_t_crisp(data_x, data_y, data_z, x_ranges_num, w0)
 integral_x = np.dot(data_x, np.transpose(w))  # интегральный показатель компетентности
 J, mat = calc_reduced_correspondence_matrix(integral_x, data_y, data_z, t)
 print(mat)
 print("J =", J)
+print(w)
+print(t)
+uu = compute_u(t, integral_x)
+#fuzzy_plot_points_partition(integral_x, data_y, t, uu)
+fuzzy_plot_points_partition_coloured(integral_x, data_y, t, uu, np.mean(data_z, axis=1))
 
