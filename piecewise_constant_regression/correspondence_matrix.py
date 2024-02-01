@@ -1,3 +1,4 @@
+import math
 import numpy as np
 from optimal_partition import calc_c_k, calc_u_k_given_a, calc_u_k
 import statsmodels.api as sm
@@ -75,9 +76,13 @@ def calc_reduced_correspondence_matrix(x, y, z, t):
         for j in range(m):
             mat[k, j] = np.dot(u[:, k], v[:, j]) / np.sum(u[:, k])
 
-    J = 0  # заглушка
+    # нечеткий аналог расстояния Кульбака-Лейблера
+    J = 0
+    s = np.zeros(m)
+    for k in range(m):
+        s[k] = np.sum(u[:, k])
+    # J = - sum_k ( sum_i u[i, k] * log( sum_i (u[i, k] * v[i, k]) ) )
+    for k in range(m):
+        J -= s[k] * math.log(mat[k, k] * s[k])
+
     return J, mat
-
-
-
-# TODO: отдельная функция для приведенного KPI (reduced KPI)

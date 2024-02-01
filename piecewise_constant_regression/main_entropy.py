@@ -77,11 +77,12 @@ t0 = points_partition(integral_x, data_y, x_ranges_num)
 J, mat = calc_reduced_correspondence_matrix(integral_x, data_y, data_z, t0)
 np.set_printoptions(precision=3, suppress=True)
 print(mat)
+print("J =", J)
 
-#iter_num = 200
-#lam = 0.01
-#t = fuzzy_optimal_partition(integral_x, data_y, x_ranges_num, t0, iter_num, lam)
+iter_num = 200
+lam = 0.01
+t = fuzzy_optimal_partition(integral_x, data_y, x_ranges_num, t0, iter_num, lam)
+J, mat = calc_reduced_correspondence_matrix(integral_x, data_y, data_z, t)
+print(mat)
+print("J =", J)
 
-
-# TODO: разбиение оси y на нечеткие интервалы, построение матрицы соответствия,
-#   вычисление целевого функционала (расстояние Кульбака-Лейблера)
