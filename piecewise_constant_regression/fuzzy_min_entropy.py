@@ -1,7 +1,8 @@
 import numpy as np
 from optimal_partition import fuzzy_optimal_partition
 from scipy.optimize import minimize
-from correspondence_matrix import calc_reduced_correspondence_matrix
+from correspondence_matrix import calc_reduced_correspondence_matrix_given_c
+from optimal_partition import calc_c_k
 
 
 def fuzzy_min_entropy(x, y, z, m, iter_num, w0, t0):
@@ -17,7 +18,7 @@ def fuzzy_min_entropy(x, y, z, m, iter_num, w0, t0):
         iter_num = 200
         lam = 0.01
         t = fuzzy_optimal_partition(integral_x, y, m, t, iter_num, lam)
-
+        c = [calc_c_k(t, k, integral_x, y) for k in range(m)]
         print("t =", t)
 
         # находим наилучшие веса при заданном разбиении
@@ -25,11 +26,12 @@ def fuzzy_min_entropy(x, y, z, m, iter_num, w0, t0):
             nonlocal integral_x
             for i in range(n):
                 integral_x[i] = np.dot(x[i, :], w)
-            J, _ = calc_reduced_correspondence_matrix(integral_x, y, z, t)
+            J, _ = calc_reduced_correspondence_matrix_given_c(integral_x, y, z, t, c)
             print(J)
             return J
 
-        res = minimize(f, w, method='Nelder-Mead', options={'maxiter': 1000})
+        #res = minimize(f, w, method='Nelder-Mead', options={'maxiter': 1000})
+        res = minimize(f, w, tol=1e-3)
         w = res.x
 
     return w, t

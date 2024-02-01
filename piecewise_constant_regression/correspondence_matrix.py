@@ -55,10 +55,10 @@ def calc_weighted_regression(x, y, u):
     return params[1:], params[0]
 
 
-def calc_reduced_correspondence_matrix(x, y, z, t):
+def calc_reduced_correspondence_matrix_given_c(x, y, z, t, c):
     data_size = len(y)  # число точек
     m = len(t) + 1  # число интервалов
-    c = [calc_c_k(t, k, x, y) for k in range(m)]
+    # c = [calc_c_k(t, k, x, y) for k in range(m)]
 
     x_min = min(x)
     x_max = max(x)
@@ -88,7 +88,13 @@ def calc_reduced_correspondence_matrix(x, y, z, t):
         s[k] = np.sum(u[:, k])
     # J = - sum_k ( sum_i u[i, k] * log( sum_i (u[i, k] * v[i, k]) ) )
     for k in range(m):
-        if s[k] != 0 and mat[k, k] != 0:
+        if s[k] != 0:  # and mat[k, k] != 0:
             J -= s[k] * math.log(mat[k, k] * s[k])
 
     return J, mat
+
+
+def calc_reduced_correspondence_matrix(x, y, z, t):
+    m = len(t) + 1  # число интервалов
+    c = [calc_c_k(t, k, x, y) for k in range(m)]
+    return calc_reduced_correspondence_matrix_given_c(x, y, z, t, c)
