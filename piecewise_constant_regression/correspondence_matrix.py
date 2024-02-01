@@ -38,6 +38,9 @@ def calc_correspondence_matrix(x, y, t):
 #   массив коэффициентов при признаках
 #   и число - свободный член
 def calc_weighted_regression(x, y, u):
+    if np.sum(u != 0) < 5:
+        return np.zeros(x.shape[1]), np.mean(y[u != 0])
+
     x1 = x[u != 0]
     y1 = y[u != 0]
     u1 = u[u != 0]
@@ -69,12 +72,14 @@ def calc_reduced_correspondence_matrix(x, y, z, t):
     for k in range(m):
         w, w0 = calc_weighted_regression(z, y, u[:, k])
         #print("c[k] =", c[k])
+       # print(w)
         yr = y - (np.dot(z, w) + w0) + c[k]  # приведенный KPI
         for i in range(data_size):
             for j in range(m):
                 v[i, j] = calc_u_k_given_a(j, yr[i], c)
         for j in range(m):
-            mat[k, j] = np.dot(u[:, k], v[:, j]) / np.sum(u[:, k])
+            if np.sum(u[:, k]) != 0:
+                mat[k, j] = np.dot(u[:, k], v[:, j]) / np.sum(u[:, k])
 
     # нечеткий аналог расстояния Кульбака-Лейблера
     J = 0
@@ -83,6 +88,7 @@ def calc_reduced_correspondence_matrix(x, y, z, t):
         s[k] = np.sum(u[:, k])
     # J = - sum_k ( sum_i u[i, k] * log( sum_i (u[i, k] * v[i, k]) ) )
     for k in range(m):
-        J -= s[k] * math.log(mat[k, k] * s[k])
+        if s[k] != 0 and mat[k, k] != 0:
+            J -= s[k] * math.log(mat[k, k] * s[k])
 
     return J, mat
