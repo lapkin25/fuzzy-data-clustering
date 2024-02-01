@@ -10,7 +10,7 @@ import random
 #   возвращает середины диапазонов
 def calc_a(t, x_min, x_max):
     m = len(t) + 1  # количество диапазонов
-    a = [0 for k in range(m)]  # середины диапазонов
+    a = [0.0 for k in range(m)]  # середины диапазонов
     a[0] = (x_min + t[0]) / 2
     a[m - 1] = (t[m - 2] + x_max) / 2
     for k in range(1, m - 1):
@@ -18,12 +18,8 @@ def calc_a(t, x_min, x_max):
     return a
 
 
-# Принимает на вход (неубывающие) границы диапазонов t,
-#   номер диапазона k (k in 0..m-1) и число x - координату точки
-# Возвращает меру принадлежности точки x к k-му диапазону
-def calc_u_k(t, k, x, x_min, x_max):
-    m = len(t) + 1  # количество диапазонов
-    a = calc_a(t, x_min, x_max)
+def calc_u_k_given_a(k, x, a):
+    m = len(a)  # количество диапазонов
     if k == 0:
         if x <= a[0]:
             u_val = 1
@@ -46,6 +42,14 @@ def calc_u_k(t, k, x, x_min, x_max):
         else:
             u_val = 0
     return u_val
+
+
+# Принимает на вход (неубывающие) границы диапазонов t,
+#   номер диапазона k (k in 0..m-1) и число x - координату точки
+# Возвращает меру принадлежности точки x к k-му диапазону
+def calc_u_k(t, k, x, x_min, x_max):
+    a = calc_a(t, x_min, x_max)
+    return calc_u_k_given_a(k, x, a)
 
 
 # Принимает на вход (неубывающие) границы диапазонов t,
@@ -227,4 +231,5 @@ def fuzzy_optimal_partition(x, y, m, t0, iter_num, lam):
         print("   iteration", it)
         print("   t = ", t)
         print("   J =", J)
+        #print("   lam =", lam)
     return t

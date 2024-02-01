@@ -5,6 +5,7 @@ from sklearn.metrics import r2_score
 import math
 from regression import points_partition
 from optimal_partition import fuzzy_optimal_partition
+from correspondence_matrix import calc_correspondence_matrix
 
 
 def read_data(file_name, rows, cols):
@@ -71,9 +72,14 @@ print("Lin_RMSE =", rmse)
 integral_x = np.dot(data_x, np.transpose(w0))  # интегральный показатель компетентности
 t0 = points_partition(integral_x, data_y, x_ranges_num)
 
-iter_num = 500
-lam = 0.02
-t = fuzzy_optimal_partition(integral_x, data_y, x_ranges_num, t0, iter_num, lam)
+J, mat = calc_correspondence_matrix(integral_x, data_y, t0)
+np.set_printoptions(precision=3, suppress=True)
+print(mat)
+
+#iter_num = 200
+#lam = 0.01
+#t = fuzzy_optimal_partition(integral_x, data_y, x_ranges_num, t0, iter_num, lam)
+
 
 # TODO: разбиение оси y на нечеткие интервалы, построение матрицы соответствия,
 #   вычисление целевого функционала (расстояние Кульбака-Лейблера)
