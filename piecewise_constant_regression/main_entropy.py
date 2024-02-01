@@ -5,7 +5,7 @@ from sklearn.metrics import r2_score
 import math
 from regression import points_partition
 from optimal_partition import fuzzy_optimal_partition
-from correspondence_matrix import calc_correspondence_matrix
+from correspondence_matrix import calc_correspondence_matrix, calc_reduced_correspondence_matrix
 
 
 def read_data(file_name, rows, cols):
@@ -56,8 +56,9 @@ data_x = np.array(compet[t_num - 1])
 # берем для каждого сотрудника среднее KPI за все моменты времени
 data_y = np.array([np.mean([kpi[t][i][KPI_ind] for t in range(t_num)]) for i in range(data_size)])
 # вычисляем средний показатель выгорания, также усредненный по времени
-#data_z = np.array([np.mean([(burnout[t][i][0] + burnout[t][i][1] + burnout[t][i][2]) / 3\
+#data_z_mean = np.array([np.mean([(burnout[t][i][0] + burnout[t][i][1] + burnout[t][i][2]) / 3\
 #                            for t in range(t_num)]) for i in range(data_size)])
+data_z = np.array([[np.mean([burnout[t][i][j] for t in range(t_num)]) for j in range(burnout_num)] for i in range(data_size)])
 
 
 reg = LinearRegression().fit(data_x, data_y)
@@ -72,7 +73,8 @@ print("Lin_RMSE =", rmse)
 integral_x = np.dot(data_x, np.transpose(w0))  # интегральный показатель компетентности
 t0 = points_partition(integral_x, data_y, x_ranges_num)
 
-J, mat = calc_correspondence_matrix(integral_x, data_y, t0)
+#J, mat = calc_correspondence_matrix(integral_x, data_y, t0)
+J, mat = calc_reduced_correspondence_matrix(integral_x, data_y, data_z, t0)
 np.set_printoptions(precision=3, suppress=True)
 print(mat)
 
