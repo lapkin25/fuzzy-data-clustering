@@ -86,10 +86,10 @@ def calc_reduced_correspondence_matrix_given_c(x, y, z, t, c):
     s = np.zeros(m)
     for k in range(m):
         s[k] = np.sum(u[:, k])
-    # J = - sum_k ( sum_i u[i, k] * log( sum_i (u[i, k] * v[i, k]) ) )
+    # J = - sum_k ( sum_i u[i, k] * log( sum_i (u[i, k] * v[i, k]) / sum_i u[i, k]  ) )
     for k in range(m):
         if s[k] != 0:  # and mat[k, k] != 0:
-            J -= s[k] * math.log(mat[k, k] * s[k])
+            J -= s[k] * math.log(mat[k, k])
 
     return J, mat
 

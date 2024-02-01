@@ -95,4 +95,3 @@ J, mat = calc_reduced_correspondence_matrix(integral_x, data_y, data_z, t)
 print(mat)
 print("J =", J)
 
-# TODO: попробовать зафиксировать не только t (классы по оси x), но и a (классы по оси y)?

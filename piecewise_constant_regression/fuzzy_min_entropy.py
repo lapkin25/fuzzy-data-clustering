@@ -24,14 +24,16 @@ def fuzzy_min_entropy(x, y, z, m, iter_num, w0, t0):
         # находим наилучшие веса при заданном разбиении
         def f(w):
             nonlocal integral_x
-            for i in range(n):
-                integral_x[i] = np.dot(x[i, :], w)
-            J, _ = calc_reduced_correspondence_matrix_given_c(integral_x, y, z, t, c)
+            #for i in range(n):
+            #    integral_x[i] = np.dot(x[i, :], w)
+            integral_x = np.dot(x, w)
+            J, mat = calc_reduced_correspondence_matrix_given_c(integral_x, y, z, t, c)
             print(J)
+            print(mat)
             return J
 
         #res = minimize(f, w, method='Nelder-Mead', options={'maxiter': 1000})
-        res = minimize(f, w, tol=1e-3)
+        res = minimize(f, w, tol=1e-3, options={'maxiter': 1000})
         w = res.x
 
     return w, t
