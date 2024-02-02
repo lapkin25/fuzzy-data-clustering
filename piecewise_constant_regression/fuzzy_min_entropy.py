@@ -53,9 +53,9 @@ def fuzzy_min_entropy_t_crisp(x, y, z, m, w0):
         t = points_partition(integral_x, y, m)
 
         # еще улучшаем разбиение с помощью нечеткого функционала
-        #iter_num = 100
-        #lam = 0.01
-        #t = fuzzy_optimal_partition(integral_x, y, m, t, iter_num, lam)
+       # iter_num = 50
+       # lam = 0.01
+       # t = fuzzy_optimal_partition(integral_x, y, m, t, iter_num, lam)
 
         print(t)
         J, mat = calc_reduced_correspondence_matrix(integral_x, y, z, t)
@@ -63,7 +63,7 @@ def fuzzy_min_entropy_t_crisp(x, y, z, m, w0):
         print(mat)
         return J
 
-    res = minimize(f, w, tol=1e-2, options={'maxiter': 200})
+    res = minimize(f, w, tol=1e-2, options={'maxiter': 100, 'disp': True})  #, method='Nelder-Mead')  # убрать method?
     w = res.x
     integral_x = np.dot(x, w)
     t = points_partition(integral_x, y, m)

@@ -34,7 +34,7 @@ kpi_num = 4  # число ключевых показателей
 burnout_num = 3  # число показателей выгорания
 data_size = 219
 
-x_ranges_num = 7  # число диапазонов взвешенной суммы
+x_ranges_num = 6  # число диапазонов взвешенной суммы
 
 compet = [None for t in range(t_num)]
 compet_files = ["compet_t" + str(i) + ".csv" for i in range(t_num)]
