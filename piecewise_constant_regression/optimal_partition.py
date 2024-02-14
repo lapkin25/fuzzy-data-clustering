@@ -233,3 +233,65 @@ def fuzzy_optimal_partition(x, y, m, t0, iter_num, lam):
         print("   J =", J)
         #print("   lam =", lam)
     return t
+
+
+from correspondence_matrix import calc_reduced_correspondence_matrix
+
+def calc_derivatives_J_entropy_t(t, x, y, z):
+    m = len(t) + 1  # количество диапазонов
+    J_t = [0 for j in range(m - 1)]
+    delta_t = 0.1
+
+    J0, _ = calc_reduced_correspondence_matrix(x, y, z, t)
+    for j in range(m - 1):
+        t[j] += delta_t
+        J, _ = calc_reduced_correspondence_matrix(x, y, z, t)
+        J_t[j] = (J - J0) / delta_t
+        t[j] -= delta_t
+
+    return J_t
+
+# Принимает на вход координаты точек (x_i, y_i) и число диапазонов m,
+#   а также начальное приближение t_0, число итераций iter_num
+#   и параметр градиентного спуска lam
+# Возвращает список границ диапазонов:
+#   t[j] - граница между j-м и (j+1)-м диапазонами, j = 0..m-2
+def fuzzy_entropy_optimal_partition(x, y, z, m, t0, iter_num, lam):
+    t = t0.copy()
+    J_pred, _ = calc_reduced_correspondence_matrix(x, y, z, t)
+    t_pred = t.copy()
+    cnt = 0
+    for it in range(iter_num):
+        # TODO: прокомментировать алгоритм
+        J_t = calc_derivatives_J_entropy_t(t, x, y, z)
+
+        #J_t_check = calc_derivatives_J_t_check(t, x, y)
+        #print("J_t =", J_t)
+        #print("J_t_check =", J_t_check)
+        #for j in range(m - 1):
+
+        j = random.choice(range(m - 1))
+        t_j_new = t[j] - lam * J_t[j]
+        if j > 0 and t_j_new < (t[j - 1] + t[j]) / 2:
+            t_j_new = (t[j - 1] + t[j]) / 2
+        elif j < m - 2 and t_j_new > (t[j] + t[j + 1]) / 2:
+            t_j_new = (t[j] + t[j + 1]) / 2
+        t[j] = t_j_new
+
+        J, _ = calc_reduced_correspondence_matrix(x, y, z, t)
+        if J < J_pred:
+            cnt += 1
+            if cnt == 5:
+                lam *= 1.3
+                cnt = 0
+            t_pred = t.copy()
+            J_pred = J
+        else:
+            lam /= 1.5
+            cnt = 0
+            t = t_pred.copy()
+        print("   iteration", it)
+        print("   t = ", t)
+        print("   J =", J)
+        #print("   lam =", lam)
+    return t
