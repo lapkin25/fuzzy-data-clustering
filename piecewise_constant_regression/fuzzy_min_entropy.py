@@ -5,6 +5,7 @@ from optimal_partition import fuzzy_optimal_partition, calc_c_k, fuzzy_entropy_o
 from regression import points_partition
 
 
+# попеременный алгоритм нахождения оптимальных весов и оптимального разбиения точек на диапазоны
 def fuzzy_min_entropy(x, y, z, m, iter_num, w0, t0):
     n = x.shape[0]  # количество точек
     p = x.shape[1]  # количество признаков

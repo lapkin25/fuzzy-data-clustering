@@ -91,11 +91,14 @@ print("J =", J)
 """
 
 # 5 классов
-# w0 = []
-# t0 = []
+#w0 = [ 2.515, -0.02,  -1.544,  0.555,  0.462,  2.331,  0.732,  0.981,  0.159,  2.776,
+#   0.479,  1.546,  0.334,  1.054, -0.104,  0.152,  0.696,  0.486,  2.769,  3.999,
+#   1.793,  1.727, -1.634,  1.403,  1.57,   0.326,  2.241, -1.179, 11.863,  4.607,
+#  -0.009,  0.905, -3.371, -4.7,    2.912, -1.803, -0.28,   2.654]
+# t0 = [53.861176353113635, 60.45466887443964, 74.09809529535438, 91.0374290731998]
 
-#w, t = fuzzy_min_entropy(data_x, data_y, data_z, x_ranges_num, 1, w0, t0)
-w, t = fuzzy_min_entropy_t_crisp(data_x, data_y, data_z, x_ranges_num, w0)
+w, t = fuzzy_min_entropy(data_x, data_y, data_z, x_ranges_num, 20, w0, t0)
+#w, t = fuzzy_min_entropy_t_crisp(data_x, data_y, data_z, x_ranges_num, w0)
 integral_x = np.dot(data_x, np.transpose(w))  # интегральный показатель компетентности
 J, mat = calc_reduced_correspondence_matrix(integral_x, data_y, data_z, t)
 print(mat)
