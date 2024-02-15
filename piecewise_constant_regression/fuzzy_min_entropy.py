@@ -17,7 +17,8 @@ def fuzzy_min_entropy(x, y, z, m, iter_num, w0, t0):
             integral_x[i] = np.dot(x[i, :], w)
         iter_num = 100
         lam = 0.01
-        t = fuzzy_optimal_partition(integral_x, y, m, t, iter_num, lam)
+        #t = fuzzy_optimal_partition(integral_x, y, m, t, iter_num, lam)
+        t = fuzzy_entropy_optimal_partition(integral_x, y, z, m, t, iter_num, lam)
         c = [calc_c_k(t, k, integral_x, y) for k in range(m)]
         print("t =", t)
 
@@ -32,9 +33,9 @@ def fuzzy_min_entropy(x, y, z, m, iter_num, w0, t0):
             print(mat)
             return J
 
-        #res = minimize(f, w, method='Nelder-Mead', options={'maxiter': 1000})
+        res = minimize(f, w, method='Nelder-Mead', options={'maxiter': 1000})
         #res = minimize(f, w, tol=1e-3, options={'maxiter': 1000})
-        res = minimize(f, w, tol=1e-2, options={'maxiter': 30})
+        #res = minimize(f, w, tol=1e-2, options={'maxiter': 30})
         w = res.x
 
     return w, t

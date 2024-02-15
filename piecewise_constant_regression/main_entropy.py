@@ -90,6 +90,10 @@ print(mat)
 print("J =", J)
 """
 
+# 5 классов
+# w0 = []
+# t0 = []
+
 #w, t = fuzzy_min_entropy(data_x, data_y, data_z, x_ranges_num, 1, w0, t0)
 w, t = fuzzy_min_entropy_t_crisp(data_x, data_y, data_z, x_ranges_num, w0)
 integral_x = np.dot(data_x, np.transpose(w))  # интегральный показатель компетентности
