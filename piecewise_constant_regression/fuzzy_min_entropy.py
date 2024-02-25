@@ -39,7 +39,7 @@ def fuzzy_min_entropy(x, y, z, m, iter_num, w0, t0):
         #res = minimize(f, w, tol=1e-2, options={'maxiter': 30})
         w = res.x
 
-    return w, t
+    return w, t, c
 
 
 # используется разбиение на диапазоны с помощью четкой кусочно-постоянной регрессии

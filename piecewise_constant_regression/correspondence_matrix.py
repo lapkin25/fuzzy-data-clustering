@@ -55,7 +55,7 @@ def calc_weighted_regression(x, y, u):
     return params[1:], params[0]
 
 
-def calc_reduced_correspondence_matrix_given_c(x, y, z, t, c):
+def calc_reduced_correspondence_matrix_given_c(x, y, z, t, c, verbose=False):
     data_size = len(y)  # число точек
     m = len(t) + 1  # число интервалов
     # c = [calc_c_k(t, k, x, y) for k in range(m)]
@@ -71,8 +71,10 @@ def calc_reduced_correspondence_matrix_given_c(x, y, z, t, c):
     v = np.zeros((data_size, m))
     for k in range(m):
         w, w0 = calc_weighted_regression(z, y, u[:, k])
-        #print("c[k] =", c[k])
-       # print(w)
+        if verbose:
+            print("k =", k)
+            print("w =", w)
+            print("w0 =", w0)
         yr = y - (np.dot(z, w) + w0) + c[k]  # приведенный KPI
         for i in range(data_size):
             for j in range(m):
@@ -94,7 +96,7 @@ def calc_reduced_correspondence_matrix_given_c(x, y, z, t, c):
     return J, mat
 
 
-def calc_reduced_correspondence_matrix(x, y, z, t):
+def calc_reduced_correspondence_matrix(x, y, z, t, verbose=False):
     m = len(t) + 1  # число интервалов
     c = [calc_c_k(t, k, x, y) for k in range(m)]
-    return calc_reduced_correspondence_matrix_given_c(x, y, z, t, c)
+    return calc_reduced_correspondence_matrix_given_c(x, y, z, t, c, verbose)

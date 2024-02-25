@@ -77,7 +77,7 @@ t0 = points_partition(integral_x, data_y, x_ranges_num)
 
 #J, mat = calc_correspondence_matrix(integral_x, data_y, t0)
 J, mat = calc_reduced_correspondence_matrix(integral_x, data_y, data_z, t0)
-np.set_printoptions(precision=3, suppress=True)
+np.set_printoptions(precision=5, suppress=True)
 print(mat)
 print("J =", J)
 
@@ -91,20 +91,23 @@ print("J =", J)
 """
 
 # 5 классов
-#w0 = [ 2.515, -0.02,  -1.544,  0.555,  0.462,  2.331,  0.732,  0.981,  0.159,  2.776,
-#   0.479,  1.546,  0.334,  1.054, -0.104,  0.152,  0.696,  0.486,  2.769,  3.999,
-#   1.793,  1.727, -1.634,  1.403,  1.57,   0.326,  2.241, -1.179, 11.863,  4.607,
-#  -0.009,  0.905, -3.371, -4.7,    2.912, -1.803, -0.28,   2.654]
-# t0 = [53.861176353113635, 60.45466887443964, 74.09809529535438, 91.0374290731998]
+w0 = [ 2.42568, -0.01622, -1.55724, 0.61469,  0.49749,  2.28665,  0.77113,  0.93025,
+  0.29054,  2.80141,  0.46901,  1.49558,  0.28327,  1.05572, -0.09754,  0.1322,
+  0.67519,  0.50871,  2.68386,  4.0917,   1.75266,  1.87489, -1.68867,  1.48413,
+  1.60866,  0.14488,  2.42032, -1.27706, 12.00537,  4.66233,  0.00421,  0.86921,
+ -3.50815, -4.93438,  2.92068, -1.73377, -0.29395,  2.7637 ]
+t0 = [53.84339218405032, 60.33215681343996, 74.15304632000989, 91.09094471075109]
 
-w, t = fuzzy_min_entropy(data_x, data_y, data_z, x_ranges_num, 20, w0, t0)
+w, t, c = fuzzy_min_entropy(data_x, data_y, data_z, x_ranges_num, 3, w0, t0)
+#w, t, c = fuzzy_min_entropy(data_x, data_y, data_z, x_ranges_num, 20, w0, t0)
 #w, t = fuzzy_min_entropy_t_crisp(data_x, data_y, data_z, x_ranges_num, w0)
 integral_x = np.dot(data_x, np.transpose(w))  # интегральный показатель компетентности
-J, mat = calc_reduced_correspondence_matrix(integral_x, data_y, data_z, t)
+J, mat = calc_reduced_correspondence_matrix(integral_x, data_y, data_z, t, verbose=True)
 print(mat)
 print("J =", J)
-print(w)
-print(t)
+print("w =", list(w))
+print("t =", list(t))
+print("c =", c)
 uu = compute_u(t, integral_x)
 #fuzzy_plot_points_partition(integral_x, data_y, t, uu)
 fuzzy_plot_points_partition_coloured(integral_x, data_y, t, uu, np.mean(data_z, axis=1))
