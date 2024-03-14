@@ -133,3 +133,6 @@ for compet_ind in range(x_ranges_num):
 plt.legend()
 plt.show()
 
+# априорное распределение KPI
+plt.hist(data_y, bins=10)
+plt.show()
