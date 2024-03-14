@@ -55,7 +55,7 @@ def calc_weighted_regression(x, y, u):
     return params[1:], params[0]
 
 
-def calc_reduced_correspondence_matrix_given_c(x, y, z, t, c, verbose=False):
+def calc_reduced_correspondence_matrix_given_c(x, y, z, t, c, verbose=False, return_s = False):
     data_size = len(y)  # число точек
     m = len(t) + 1  # число интервалов
     # c = [calc_c_k(t, k, x, y) for k in range(m)]
@@ -93,10 +93,13 @@ def calc_reduced_correspondence_matrix_given_c(x, y, z, t, c, verbose=False):
         if s[k] != 0:  # and mat[k, k] != 0:
             J -= s[k] * math.log(mat[k, k])
 
-    return J, mat
+    if return_s:
+        return J, mat, s
+    else:
+        return J, mat
 
 
-def calc_reduced_correspondence_matrix(x, y, z, t, verbose=False):
+def calc_reduced_correspondence_matrix(x, y, z, t, verbose=False, return_s = False):
     m = len(t) + 1  # число интервалов
     c = [calc_c_k(t, k, x, y) for k in range(m)]
-    return calc_reduced_correspondence_matrix_given_c(x, y, z, t, c, verbose)
+    return calc_reduced_correspondence_matrix_given_c(x, y, z, t, c, verbose, return_s)

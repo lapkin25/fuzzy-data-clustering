@@ -8,7 +8,8 @@ from optimal_partition import fuzzy_optimal_partition
 from correspondence_matrix import calc_correspondence_matrix, calc_reduced_correspondence_matrix
 from fuzzy_min_entropy import fuzzy_min_entropy, fuzzy_min_entropy_t_crisp
 from fuzzy_multivariate_regression import compute_u, fuzzy_plot_points_partition, fuzzy_plot_points_partition_coloured
-from distrubution import calc_distribution
+from distribution import calc_distribution
+import matplotlib.pyplot as plt
 
 
 def read_data(file_name, rows, cols):
@@ -99,7 +100,7 @@ w0 = [ 2.42568, -0.01622, -1.55724, 0.61469,  0.49749,  2.28665,  0.77113,  0.93
  -3.50815, -4.93438,  2.92068, -1.73377, -0.29395,  2.7637 ]
 t0 = [53.84339218405032, 60.33215681343996, 74.15304632000989, 91.09094471075109]
 
-w, t, c = fuzzy_min_entropy(data_x, data_y, data_z, x_ranges_num, 0, w0, t0)
+w, t, c = fuzzy_min_entropy(data_x, data_y, data_z, x_ranges_num, 1, w0, t0)
 #w, t, c = fuzzy_min_entropy(data_x, data_y, data_z, x_ranges_num, 20, w0, t0)
 #w, t = fuzzy_min_entropy_t_crisp(data_x, data_y, data_z, x_ranges_num, w0)
 integral_x = np.dot(data_x, np.transpose(w))  # интегральный показатель компетентности
@@ -119,6 +120,16 @@ fuzzy_plot_points_partition_coloured(integral_x, data_y, t, uu, np.mean(data_z, 
 #   к определенному значению KPI можно будет вычислить
 #   по формуле полной вероятности, используя меры принадлежности
 #   к категориям компетентности
-d = calc_distribution(integral_x, data_y, data_z, t,
-                      np.min(data_y), np.max(data_y), 100)
+num_intervals = 100
+min_y = np.min(data_y)
+max_y = np.max(data_y)
+d = calc_distribution(integral_x, data_y, data_z, t, min_y, max_y, num_intervals)
 print(d)
+
+y_vals = np.linspace(min_y, max_y, num=num_intervals, endpoint=False)
+#compet_ind = 0  # номер интервала компетенций
+for compet_ind in range(x_ranges_num):
+    plt.plot(y_vals, d[compet_ind, :] * (max_y - min_y) / num_intervals, label=str(compet_ind + 1))
+plt.legend()
+plt.show()
+
