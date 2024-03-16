@@ -121,15 +121,15 @@ fuzzy_plot_points_partition_coloured(integral_x, data_y, t, uu, np.mean(data_z, 
 #   по формуле полной вероятности, используя меры принадлежности
 #   к категориям компетентности
 num_intervals = 100
-min_y = np.min(data_y)
-max_y = np.max(data_y)
-d = calc_distribution(integral_x, data_y, data_z, t, min_y, max_y, num_intervals)
+min_yr = 27  # np.min(data_y)
+max_yr = 108  #np.max(data_y)
+d = calc_distribution(integral_x, data_y, data_z, t, min_yr, max_yr, num_intervals)
 print(d)
 
-y_vals = np.linspace(min_y, max_y, num=num_intervals, endpoint=False)
+y_vals = np.linspace(min_yr, max_yr, num=num_intervals, endpoint=False)
 #compet_ind = 0  # номер интервала компетенций
 for compet_ind in range(x_ranges_num):
-    plt.plot(y_vals, d[compet_ind, :] * (max_y - min_y) / num_intervals, label=str(compet_ind + 1))
+    plt.plot(y_vals, d[compet_ind, :] * (max_yr - min_yr) / num_intervals, label=str(compet_ind + 1))
 plt.legend()
 plt.show()
 

@@ -69,6 +69,8 @@ def calc_reduced_correspondence_matrix_given_c(x, y, z, t, c, verbose=False, ret
 
     mat = np.zeros((m, m))
     v = np.zeros((data_size, m))
+    min_yr = None
+    max_yr = None
     for k in range(m):
         w, w0 = calc_weighted_regression(z, y, u[:, k])
         if verbose:
@@ -76,12 +78,17 @@ def calc_reduced_correspondence_matrix_given_c(x, y, z, t, c, verbose=False, ret
             print("w =", w)
             print("w0 =", w0)
         yr = y - (np.dot(z, w) + w0) + c[k]  # приведенный KPI
+        if min_yr is None or np.min(yr) < min_yr:
+            min_yr = np.min(yr)
+        if max_yr is None or np.max(yr) > max_yr:
+            max_yr = np.max(yr)
         for i in range(data_size):
             for j in range(m):
                 v[i, j] = calc_u_k_given_a(j, yr[i], c)
         for j in range(m):
             if np.sum(u[:, k]) != 0:
                 mat[k, j] = np.dot(u[:, k], v[:, j]) / np.sum(u[:, k])
+    #print("min_yr =", min_yr, " max_yr =", max_yr)
 
     # нечеткий аналог расстояния Кульбака-Лейблера
     J = 0
