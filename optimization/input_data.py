@@ -23,6 +23,9 @@ class InvestToCompet:
         self.alpha = self.palpha * RUB_COEFF
         # beta - коэффициент при компетенции в предыдущий момент времени
         self.beta = self.pbeta
+        
+    def read(self, filename):
+        pass
 
 
 class ActivitiesExpectations:
@@ -33,9 +36,12 @@ class ActivitiesExpectations:
     def __init__(self):
         self.mu = np.zeros(num_activities)
         self.nu = np.zeros(num_activities)
+        
+    def read(self, filename):
+        pass
 
     # рассчитать отклонения ожиданий в момент времени (t+1),
-    #   зная: m - номер компетенции, s - объем инвестиций,
+    #   зная: m - номер направления мероприятий, s - объем инвестиций,
     #         qt - отклонения ожиданий в момент времени t
     def calc_expectations(self, m, s, qt):
         qnext = qt + 2 * (s - self.mu[m]) / (self.nu[m] - self.mu[m])
@@ -51,12 +57,26 @@ class ExpectationsToBurnout:
     # b_il - l-й показатель i-го сотрудника
     # gamma_l + sum_m[ delta_lm * (a_im * q_im(t)) - интегральный показатель ожиданий
     # phi_l - кусочно-линейная функция, аппроксимирующая матрицу соответствий между
-    #   диапазонами интегрального показателя и диапазонами показателя выгорания
+    #   диапазонами интегрального показателя ожиданий и диапазонами показателя выгорания
     def __init__(self):
         pass
+        
+    def read(self, filename):
+        pass
+        
+    # рассчитать l-й показатель выгорания, зная:
+    #   a_m - вектор важности для сотрудника каждого m-го направления мероприятий
+    #   q_m - вектор отклонений ожиданий сотрудника от реализации m-го направления мероприятий
+    def calc_burnout(self, l, a, q):
+        pass
+        
+    # внести в этот класс диапазоны интегрального показателя
+    # также добавить функцию расчета коэффициентов линеаризованной модели
+    #   (в рамках текущего диапазона интегрального показателя), если заданы векторы a, q
 
 
 invest_to_compet = InvestToCompet()
 #print(invest_to_compet.alpha)
 #print(invest_to_compet.beta)
 activities_expectations = ActivitiesExpectations()
+expectations_to_burnout = ExpectationsToBurnout()
