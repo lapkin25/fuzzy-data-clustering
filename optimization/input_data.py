@@ -45,6 +45,7 @@ class ActivitiesExpectations:
         self.read(filename)
         
     def read(self, filename):
+        # при чтении разделить mu и nu на RUB_COEFF и умножить на 3 (число месяцев в квартале)
         pass
 
     # рассчитать отклонения ожиданий в момент времени (t+1),
@@ -69,13 +70,14 @@ class ExpectationsToBurnout:
     #   t_p (p = 0..num_expectation_classes-2) - границы между p-м и (p+1)-м диапазонами
     # как-то обозначить равномерные диапазоны значений показателя выгорания
     def __init__(self, filename):
-        gamma = np.zeros(num_burnout_indicators)
-        delta = np.zeros((num_burnout_indicators, num_activities))
+        self.gamma = np.zeros(num_burnout_indicators)
+        self.delta = np.zeros((num_burnout_indicators, num_activities))
         # инициализировать self.t
         self.read(filename)
         
     def read(self, filename):
         pass
+    # рассчитать кусочно-линейную зависимость phi_l, заданную координатами узловых точек
         
     # рассчитать l-й показатель выгорания, зная:
     #   a_m - вектор важности для сотрудника каждого m-го направления мероприятий
@@ -86,10 +88,3 @@ class ExpectationsToBurnout:
     # внести в этот класс диапазоны интегрального показателя
     # также добавить функцию расчета коэффициентов линеаризованной модели
     #   (в рамках текущего диапазона интегрального показателя), если заданы векторы a, q
-
-
-invest_to_compet = InvestToCompet()
-#print(invest_to_compet.alpha)
-#print(invest_to_compet.beta)
-activities_expectations = ActivitiesExpectations()
-expectations_to_burnout = ExpectationsToBurnout()
