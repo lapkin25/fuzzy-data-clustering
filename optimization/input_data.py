@@ -57,6 +57,35 @@ class CompetData:
             self.x[i, :] = np.array(list(map(float, row)))
 
 
+class ExpectationsData:
+    # q_im - отклонение ожиданий i-го сотрудника от реализации m-го направления мероприятий
+    # a_im - важность для i-го сотрудника m-го направления мероприятий
+    def __init__(self, file_name):
+        self.q = np.zeros((data_size, num_activities))
+        self.a = np.zeros((data_size, num_activities))
+        self.read(file_name)
+
+    def read(self, file_name):
+        with open(file_name) as fp:
+            reader = csv.reader(fp, delimiter=";")
+            next(reader, None)  # пропустить заголовки
+            data_str = [row for row in reader]
+        assert(len(data_str) == data_size)
+        for i, row in enumerate(data_str):
+            assert(len(row) == num_activities)
+            for m in range(num_activities):
+                val = float(row[m])
+                if val > 0:
+                    self.a[i, m] = val
+                    self.q[i, m] = 1.0
+                elif val < 0:
+                    self.a[i, m] = -val
+                    self.q[i, m] = -1.0
+                else:  # val == 0
+                    self.a[i, m] = 0.0
+                    self.q[i, m] = 0.0
+
+
 class ActivitiesExpectations:
     # q_im - отклонение ожиданий i-го сотрудника от реализации m-го направления мероприятий
     # mu_m - минимально ожидаемые инвестиции
