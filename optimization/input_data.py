@@ -1,6 +1,8 @@
 import numpy as np
 import csv
 
+# число наблюдений
+data_size = 219
 
 # число компетенций
 num_compet = 38
@@ -36,6 +38,23 @@ class InvestToCompet:
             assert(len(row_coeff) == num_activities + 1)
             self.beta[j] = float(row_coeff[0])
             self.alpha[j, :] = np.array(list(map(float, row_coeff[1:])))
+
+
+class CompetData:
+    # x_ij - j-я компетенция i-го сотрудника
+    def __init__(self, file_name):
+        self.x = np.zeros((data_size, num_compet))
+        self.read(file_name)
+
+    def read(self, file_name):
+        with open(file_name) as fp:
+            reader = csv.reader(fp, delimiter=";")
+            next(reader, None)  # пропустить заголовки
+            data_str = [row for row in reader]
+        assert(len(data_str) == data_size)
+        for i, row in enumerate(data_str):
+            assert(len(row) == num_compet)
+            self.x[i, :] = np.array(list(map(float, row)))
 
 
 class ActivitiesExpectations:
