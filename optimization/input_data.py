@@ -1,4 +1,6 @@
 import numpy as np
+import csv
+
 
 # число компетенций
 num_compet = 38
@@ -10,28 +12,30 @@ num_burnout_indicators = 3
 # число диапазонов интегрального показателя ожиданий
 num_expectation_classes = 5
 
-# единицы расчета стоимостей (1000 - значит в тысячах рублей)
-RUB_COEFF = 1000
-
 
 class InvestToCompet:
     # x_ij - j-я компетенция i-го сотрудника
     # s_im - вложения по m-му направлению по отношению к i-му сотруднику
     # x_ij(t+1) = beta_j * x_ij(t) + sum_m[ alpha_jm * s_im(t) ]
-    def __init__(self, filename):
+    def __init__(self, file_name):
         # коэффициенты в единицах рублей
-        # palpha - на сколько увеличится компетенция при вложении одного рубля
-        self.palpha = np.zeros((num_compet, num_activities))
-        # pbeta - коэффициент при компетенции в предыдущий момент времени
-        self.pbeta = np.zeros(num_compet)
-        # alpha - на сколько увеличится компетенция при вложении 1000 рублей
-        self.alpha = self.palpha * RUB_COEFF
+        # alpha - на сколько увеличится компетенция при вложении одного рубля
+        self.alpha = np.zeros((num_compet, num_activities))
         # beta - коэффициент при компетенции в предыдущий момент времени
-        self.beta = self.pbeta
-        self.read(filename)
-        
-    def read(self, filename):
-        pass
+        self.beta = np.zeros(num_compet)
+        self.read(file_name)
+
+    def read(self, file_name):
+        with open(file_name) as fp:
+            reader = csv.reader(fp, delimiter=";")
+            next(reader, None)  # пропустить заголовки
+            data_str = [row for row in reader]
+        assert(len(data_str) == num_compet)
+        for j, row in enumerate(data_str):
+            row_coeff = row[1:]
+            assert(len(row_coeff) == num_activities + 1)
+            self.beta[j] = float(row_coeff[0])
+            self.alpha[j, :] = np.array(list(map(float, row_coeff[1:])))
 
 
 class ActivitiesExpectations:
