@@ -91,13 +91,13 @@ class ActivitiesExpectations:
     # mu_m - минимально ожидаемые инвестиции
     # nu_m - максимально ожидаемые инвестиции
     # q_im(t+1) = max(min(q_im(t) + 2 * (s_im(t) - mu_m) / (nu_m - mu_m), 1), -1)
-    def __init__(self, filename):
+    def __init__(self, file_name):
         self.mu = np.zeros(num_activities)
         self.nu = np.zeros(num_activities)
-        self.read(filename)
+        self.read(file_name)
         
-    def read(self, filename):
-        # при чтении разделить mu и nu на RUB_COEFF и умножить на 3 (число месяцев в квартале)
+    def read(self, file_name):
+        # при чтении умножить числа на 3 (число месяцев в квартале)
         pass
 
     # рассчитать отклонения ожиданий в момент времени (t+1),
@@ -113,22 +113,56 @@ class ActivitiesExpectations:
 
 
 class ExpectationsToBurnout:
-    # b_il(t) = phi_l(gamma_l + sum_m[ delta_lm * (a_im * q_im(t)) ]
+    # b_il(t) = phi_l(sum_m[ w_lm * (a_im * q_im(t)) ])
     # b_il - l-й показатель i-го сотрудника
-    # gamma_l + sum_m[ delta_lm * (a_im * q_im(t)) - интегральный показатель ожиданий
+    # sum_m[ w_lm * (a_im * q_im(t)) ] - интегральный показатель ожиданий
     # phi_l - кусочно-линейная функция, аппроксимирующая матрицу соответствий между
     #   диапазонами интегрального показателя ожиданий и диапазонами показателя выгорания
     # t_p - границы диапазонов интегрального показателя ожиданий
     #   t_p (p = 0..num_expectation_classes-2) - границы между p-м и (p+1)-м диапазонами
-    # как-то обозначить равномерные диапазоны значений показателя выгорания
-    def __init__(self, filename):
-        self.gamma = np.zeros(num_burnout_indicators)
-        self.delta = np.zeros((num_burnout_indicators, num_activities))
-        # инициализировать self.t
-        self.read(filename)
+    # равномерные диапазоны значений показателя выгорания
+    def __init__(self, expectations_data):
+        self.w = np.zeros((num_burnout_indicators, num_activities))
+        self.t = np.zeros((num_burnout_indicators, num_expectation_classes + 1))
+        self.corr_matrix = np.zeros((num_burnout_indicators, num_expectation_classes, num_expectation_classes))
+        self.read(expectations_data)
         
-    def read(self, filename):
-        pass
+    def read(self, expectations_data):
+        for l in range(num_burnout_indicators):
+            file_name = "expect_to_burnout_" + str(l + 1) + "_matrix.csv"
+            with open(file_name) as fp:
+                reader = csv.reader(fp, delimiter=";")
+                next(reader, None)  # пропустить заголовки
+                data_str = [row for row in reader]
+            assert(len(data_str) == num_expectation_classes)
+            for i, row in enumerate(data_str):
+                row = row[1:]
+                assert(len(row) == num_expectation_classes)
+                self.corr_matrix[l, i, :] = np.array(list(map(float, row)))
+
+            file_name = "expect_to_burnout_" + str(l + 1) + "_weights.csv"
+            with open(file_name) as fp:
+                reader = csv.reader(fp, delimiter=";")
+                data_str = [row for row in reader]
+            assert(len(data_str) == 1)
+            row = data_str[0]
+            assert(len(row) == num_activities)
+            self.w[l, :] = np.array(list(map(float, row)))
+
+            file_name = "expect_to_burnout_" + str(l + 1) + "_intervals.csv"
+            with open(file_name) as fp:
+                reader = csv.reader(fp, delimiter=";")
+                data_str = [row for row in reader]
+            assert(len(data_str) == 1)
+            row = data_str[0]
+            assert(len(row) == num_expectation_classes - 1)
+            self.t[l, 1:num_expectation_classes] = np.array(list(map(float, row)))
+
+            integral_expectations = np.dot(expectations_data.q * expectations_data.a, self.w[l, :])
+            self.t[l, 0] = np.min(integral_expectations)
+            self.t[l, num_expectation_classes] = np.max(integral_expectations)
+            
+
     # рассчитать кусочно-линейную зависимость phi_l, заданную координатами узловых точек
         
     # рассчитать l-й показатель выгорания, зная:
