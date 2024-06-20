@@ -57,6 +57,23 @@ class CompetData:
             self.x[i, :] = np.array(list(map(float, row)))
 
 
+class BurnoutData:
+    # b_il - l-й показатель выгорания i-го сотрудника
+    def __init__(self, file_name):
+        self.b = np.zeros((data_size, num_burnout_indicators))
+        self.read(file_name)
+
+    def read(self, file_name):
+        with open(file_name) as fp:
+            reader = csv.reader(fp, delimiter=";")
+            next(reader, None)  # пропустить заголовки
+            data_str = [row for row in reader]
+        assert(len(data_str) == data_size)
+        for i, row in enumerate(data_str):
+            assert(len(row) == num_burnout_indicators)
+            self.b[i, :] = np.array(list(map(float, row)))
+
+
 class ExpectationsData:
     # q_im - отклонение ожиданий i-го сотрудника от реализации m-го направления мероприятий
     # a_im - важность для i-го сотрудника m-го направления мероприятий
@@ -161,7 +178,7 @@ class ExpectationsToBurnout:
             integral_expectations = np.dot(expectations_data.q * expectations_data.a, self.w[l, :])
             self.t[l, 0] = np.min(integral_expectations)
             self.t[l, num_expectation_classes] = np.max(integral_expectations)
-            
+
 
     # рассчитать кусочно-линейную зависимость phi_l, заданную координатами узловых точек
         
