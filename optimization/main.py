@@ -9,6 +9,7 @@ burnout_t0 = BurnoutData("data_burnout_t0.csv")
 
 #activities_expectations = ActivitiesExpectations("expectations.csv")
 expectations_to_burnout = ExpectationsToBurnout(expectations)
+compet_burnout_to_kpi = CompetBurnoutToKPI(compet_t0)
 
 
 def plot_expectations_to_burnout(l):

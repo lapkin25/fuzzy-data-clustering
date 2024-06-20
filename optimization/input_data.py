@@ -10,9 +10,13 @@ num_compet = 38
 num_activities = 29
 # число показателей выгорания
 num_burnout_indicators = 3
+# число показателей KPI
+num_kpi_indicators = 4
 
 # число диапазонов интегрального показателя ожиданий
 num_expectation_classes = 5
+# число диапазонов интегрального показателя компетентности
+num_compet_classes = 6
 
 
 class InvestToCompet:
@@ -130,13 +134,13 @@ class ActivitiesExpectations:
 
 
 class ExpectationsToBurnout:
-    # b_il(t) = phi_l(sum_m[ w_lm * (a_im * q_im(t)) ])
+    # b_il(t) = psi_l(sum_m[ w_lm * (a_im * q_im(t)) ])
     # b_il - l-й показатель i-го сотрудника
     # sum_m[ w_lm * (a_im * q_im(t)) ] - интегральный показатель ожиданий
-    # phi_l - кусочно-линейная функция, аппроксимирующая матрицу соответствий между
+    # psi_l - кусочно-линейная функция, аппроксимирующая матрицу соответствий между
     #   диапазонами интегрального показателя ожиданий и диапазонами показателя выгорания
     # t_p - границы диапазонов интегрального показателя ожиданий
-    #   t_p (p = 0..num_expectation_classes-2) - границы между p-м и (p+1)-м диапазонами
+    #   t_p (p = 1..num_expectation_classes-1) - границы между p-м и (p+1)-м диапазонами
     # равномерные диапазоны значений показателя выгорания
     def __init__(self, expectations_data):
         self.w = np.zeros((num_burnout_indicators, num_activities))
@@ -191,3 +195,62 @@ class ExpectationsToBurnout:
     # внести в этот класс диапазоны интегрального показателя
     # также добавить функцию расчета коэффициентов линеаризованной модели
     #   (в рамках текущего диапазона интегрального показателя), если заданы векторы a, q
+
+
+class CompetBurnoutToKPI:
+    # x_ij - j-я компетенция i-го сотрудника
+    # b_il - l-й показатель выгорания i-го сотрудника
+    # y_im - m-й KPI i-го сотрудника
+    # y_im(t) = phi_m(sum_j[ w_mj * x_ij(t) ]) + W_m0 + W_m1 * b_i1(t) + W_m2 * b_i2(t) + W_m3 * b_i3(t)
+    # sum_j[ w_mj * x_ij(t) ] - интегральный показатель компетентности
+    # phi_m - кусочно-линейная функция, выражающая зависимость KPI от интегрального показателя компетентности
+    # t_p - границы диапазонов интегрального показателя компетентности
+    #   t_p (p = 1..num_compet_classes-1) - границы между p-м и (p+1)-м диапазонами
+    # c_p - центры диапазонов изменения KPI
+
+    def __init__(self, compet_data):
+        self.w = np.zeros((num_kpi_indicators, num_compet))
+        self.t = np.zeros((num_kpi_indicators, num_compet_classes + 1))
+        self.c = np.zeros((num_kpi_indicators, num_compet_classes))
+        self.read(compet_data)
+
+    def read(self, compet_data):
+        file_name = "compet_to_kpi_weights.csv"
+        with open(file_name) as fp:
+            reader = csv.reader(fp, delimiter=";")
+            next(reader, None)  # пропустить заголовки
+            data_str = [row for row in reader]
+        assert(len(data_str) == num_kpi_indicators)
+        for m, row in enumerate(data_str):
+            row = row[1:]
+            assert(len(row) == num_compet)
+            self.w[m, :] = np.array(list(map(float, row)))
+
+        file_name = "compet_to_kpi_intervals.csv"
+        with open(file_name) as fp:
+            reader = csv.reader(fp, delimiter=";")
+            next(reader, None)  # пропустить заголовки
+            data_str = [row for row in reader]
+        assert(len(data_str) == num_kpi_indicators)
+        for m, row in enumerate(data_str):
+            row = row[1:]
+            assert(len(row) == num_compet_classes - 1)
+            self.t[m, 1:num_compet_classes] = np.array(list(map(float, row)))
+
+        for m in range(num_kpi_indicators):
+            integral_compet = np.dot(compet_data.x, self.w[m, :])
+            self.t[m, 0] = np.min(integral_compet)
+            self.t[m, num_compet_classes] = np.max(integral_compet)
+
+        file_name = "compet_to_kpi_average.csv"
+        with open(file_name) as fp:
+            reader = csv.reader(fp, delimiter=";")
+            next(reader, None)  # пропустить заголовки
+            data_str = [row for row in reader]
+        assert(len(data_str) == num_kpi_indicators)
+        for m, row in enumerate(data_str):
+            row = row[1:]
+            assert(len(row) == num_compet_classes)
+            self.c[m, :] = np.array(list(map(float, row)))
+
+        # TODO: прочитать коэффициенты зависимости KPI от выгорания
