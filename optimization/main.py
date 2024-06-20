@@ -6,6 +6,7 @@ invest_to_compet = InvestToCompet("invest_to_compet.csv")
 compet_t0 = CompetData("data_compet_t0.csv")
 expectations = ExpectationsData("data_deviation_expectations.csv")
 burnout_t0 = BurnoutData("data_burnout_t0.csv")
+kpi_t0 = KPIData("data_kpi_t0.csv")
 
 #activities_expectations = ActivitiesExpectations("expectations.csv")
 expectations_to_burnout = ExpectationsToBurnout(expectations)
@@ -35,5 +36,33 @@ def plot_expectations_to_burnout(l):
     plt.ylabel("Показатель выгорания")
     plt.show()
 
+def plot_compet_to_kpi(m):
+    integral_compet = np.dot(compet_t0.x, compet_burnout_to_kpi.w[m, :])
+    min_x = np.min(integral_compet)
+    max_x = np.max(integral_compet)
+    min_y = np.min(kpi_t0.y[:, m])
+    max_y = np.max(kpi_t0.y[:, m])
+
+    #plt.plot(integral_compet, kpi_t0.y[:, m], 'ro')
+    plt.scatter(integral_compet, kpi_t0.y[:, m], c=np.mean(burnout_t0.b, axis=1), cmap='Reds')
+
+    for i in range(1, num_compet_classes):
+        plt.plot([compet_burnout_to_kpi.t[m, i], compet_burnout_to_kpi.t[m, i]], [min_y, max_y], 'g')
+
+    for i in range(num_compet_classes):
+        x1 = compet_burnout_to_kpi.t[m, i]
+        x2 = compet_burnout_to_kpi.t[m, i + 1]
+        plt.plot([x1, x2], [compet_burnout_to_kpi.c[m, i], compet_burnout_to_kpi.c[m, i]], 'b', linestyle='dashed')
+
+    avg_x = np.array([(compet_burnout_to_kpi.t[m, i] + compet_burnout_to_kpi.t[m, i + 1]) / 2
+                      for i in range(num_compet_classes)])
+    avg_y = compet_burnout_to_kpi.c[m, :]
+    plt.plot(np.hstack([[min_x], avg_x, [max_x]]), np.hstack([[avg_y[0]], avg_y, [avg_y[num_compet_classes - 1]]]), 'k', linewidth=3)
+
+    plt.xlabel("Интегральный показатель компетентности")
+    plt.ylabel("KPI")
+    plt.show()
+
 
 plot_expectations_to_burnout(0)
+plot_compet_to_kpi(0)

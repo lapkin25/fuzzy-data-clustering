@@ -78,6 +78,23 @@ class BurnoutData:
             self.b[i, :] = np.array(list(map(float, row)))
 
 
+class KPIData:
+    # y_im - m-й KPI i-го сотрудника
+    def __init__(self, file_name):
+        self.y = np.zeros((data_size, num_kpi_indicators))
+        self.read(file_name)
+
+    def read(self, file_name):
+        with open(file_name) as fp:
+            reader = csv.reader(fp, delimiter=";")
+            next(reader, None)  # пропустить заголовки
+            data_str = [row for row in reader]
+        assert(len(data_str) == data_size)
+        for i, row in enumerate(data_str):
+            assert(len(row) == num_kpi_indicators)
+            self.y[i, :] = np.array(list(map(float, row)))
+
+
 class ExpectationsData:
     # q_im - отклонение ожиданий i-го сотрудника от реализации m-го направления мероприятий
     # a_im - важность для i-го сотрудника m-го направления мероприятий
