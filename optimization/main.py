@@ -34,7 +34,7 @@ z, x_new, q_new = optimize(compet_t0.x[selected, :], expectations.q[selected, :]
 
 kpi1 = calc_kpi(x_new, q_new, expectations.a[selected, :], expectations_to_burnout, compet_burnout_to_kpi)
 print("Прогноз KPI: ", np.mean(kpi1, axis=0))
-print("Реальные KPI: ", np.mean(kpi_t0.y, axis=0))
+print("Реальные KPI: ", np.mean(kpi_t0.y[selected, :], axis=0))
 # print(np.dot(np.mean(kpi1, axis=0), kpi_importance)
 
 
