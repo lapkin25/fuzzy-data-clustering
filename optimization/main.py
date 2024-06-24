@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from input_data import *
-from optimize_kpi import optimize
+from optimize_kpi import optimize, calc_kpi
 
 
 # исходные данные
@@ -32,7 +32,8 @@ z, x_new, q_new = optimize(compet_t0.x[selected, :], expectations.q[selected, :]
          invest_to_compet, activities_expectations, expectations_to_burnout, compet_burnout_to_kpi,
          budget_constraints, total_budget)
 
-
+kpi1 = calc_kpi(x_new, q_new, expectations.a[selected, :], expectations_to_burnout, compet_burnout_to_kpi)
+print(np.mean(kpi1))
 
 
 def plot_expectations_to_burnout(l):
