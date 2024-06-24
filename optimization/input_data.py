@@ -126,8 +126,8 @@ class ExpectationsData:
 
 class ActivitiesExpectations:
     # q_im - отклонение ожиданий i-го сотрудника от реализации m-го направления мероприятий
-    # mu_m - минимально ожидаемые инвестиции
-    # nu_m - максимально ожидаемые инвестиции
+    # mu_m - минимально ожидаемые инвестиции за квартал в человека
+    # nu_m - максимально ожидаемые инвестиции за квартал в человека
     # q_im(t+1) = max(min(q_im(t) + 2 * (s_im(t) - mu_m) / (nu_m - mu_m), 1), -1)
     def __init__(self, file_name):
         self.mu = np.zeros(num_activities)
@@ -135,8 +135,16 @@ class ActivitiesExpectations:
         self.read(file_name)
         
     def read(self, file_name):
-        # при чтении умножить числа на 3 (число месяцев в квартале)
-        pass
+        with open(file_name) as fp:
+            reader = csv.reader(fp, delimiter=";")
+            next(reader, None)  # пропустить заголовки
+            data_str = [row for row in reader]
+        assert(len(data_str) == num_activities)
+        for k, row in enumerate(data_str):
+            assert(len(row) == 3)
+            # умножаем на 3, так как в файле инвестиции за месяц, а надо - за квартал
+            self.mu[k] = float(row[1]) * 3
+            self.nu[k] = float(row[2]) * 3
 
     # рассчитать отклонения ожиданий в момент времени (t+1),
     #   зная: m - номер направления мероприятий, s - объем инвестиций,
@@ -271,3 +279,19 @@ class CompetBurnoutToKPI:
             self.c[m, :] = np.array(list(map(float, row)))
 
         # TODO: прочитать коэффициенты зависимости KPI от выгорания
+
+
+class BudgetConstraints:
+    def __init__(self, file_name):
+        self.budget_activities_percent = np.zeros(num_activities)
+        self.read(file_name)
+
+    def read(self, file_name):
+        with open(file_name) as fp:
+            reader = csv.reader(fp, delimiter=";")
+            next(reader, None)  # пропустить заголовки
+            data_str = [row for row in reader]
+        assert(len(data_str) == 1)
+        row = data_str[0]
+        assert(len(row) == num_activities)
+        self.budget_activities_percent = np.array(list(map(float, row)))

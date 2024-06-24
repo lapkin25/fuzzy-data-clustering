@@ -1,16 +1,38 @@
 import matplotlib.pyplot as plt
 from input_data import *
+from optimize_kpi import optimize
 
 
-invest_to_compet = InvestToCompet("invest_to_compet.csv")
-compet_t0 = CompetData("data_compet_t0.csv")
+# исходные данные
 expectations = ExpectationsData("data_deviation_expectations.csv")
+compet_t0 = CompetData("data_compet_t0.csv")
 burnout_t0 = BurnoutData("data_burnout_t0.csv")
 kpi_t0 = KPIData("data_kpi_t0.csv")
 
-#activities_expectations = ActivitiesExpectations("expectations.csv")
+# эконометрические зависимости
+invest_to_compet = InvestToCompet("invest_to_compet.csv")
+activities_expectations = ActivitiesExpectations("data_min_max_expectations.csv")
 expectations_to_burnout = ExpectationsToBurnout(expectations)
 compet_burnout_to_kpi = CompetBurnoutToKPI(compet_t0)
+
+# ограничения оптимизации
+budget_constraints = BudgetConstraints("budget_activities.csv")
+
+# создаем случайную выборку из 100 людей
+selected_data_size = 100
+random_state = 1
+np.random.seed(random_state)
+indices = np.random.permutation(data_size)
+selected = indices[:selected_data_size]
+
+# бюджет: 500000 в год на человека
+total_budget = 500000 / 4 * selected_data_size
+
+z, x_new, q_new = optimize(compet_t0.x[selected, :], expectations.q[selected, :], expectations.a[selected, :],
+         invest_to_compet, activities_expectations, expectations_to_burnout, compet_burnout_to_kpi,
+         budget_constraints, total_budget)
+
+
 
 
 def plot_expectations_to_burnout(l):
