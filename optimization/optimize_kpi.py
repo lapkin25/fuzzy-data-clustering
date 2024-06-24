@@ -14,7 +14,9 @@ def optimize(x, q, a, invest_to_compet, activities_expectations, expectations_to
     num_compet = x.shape[1]
     num_activities = q.shape[1]
     num_kpi_indicators = compet_burnout_to_kpi.w.shape[0]
+    num_burnout_indicators = expectations_to_burnout.w.shape[0]
     num_compet_classes = compet_burnout_to_kpi.c.shape[1]
+    num_expectation_classes = expectations_to_burnout.r.shape[1]
 
     # количество инвестиций в каждого сотрудника по каждому из направлений
     z = np.zeros((data_size, num_activities))
@@ -31,6 +33,11 @@ def optimize(x, q, a, invest_to_compet, activities_expectations, expectations_to
     for i in range(data_size):
         for j in range(num_compet):
             x_new[i, j] = invest_to_compet.beta[j] * x[i, j]
+    # инициализируем ожидания
+    for i in range(data_size):
+        for k in range(num_activities):
+            q_new[i, k] = max(min(q[i, k] + 2 * (- activities_expectations.mu[k]) /\
+                          (activities_expectations.nu[k] - activities_expectations.mu[k]), 1), -1)
     while budget_spent < total_budget:
         best_i = None
         best_k = None
@@ -44,7 +51,7 @@ def optimize(x, q, a, invest_to_compet, activities_expectations, expectations_to
                 max_increase_z_ik = min(max_increase_z_ik, total_budget - np.sum(z[:, :]))
                 # Далее мы упрощаем: добираемся сначала до ближайшей точки излома, в действительности нужно
                 #   перебрать все последующие точки излома и вычислить каждый раз коэффициент при z_ik
-                coef_kpi_z_ik = 0  # коэффициент при z_ik в формуле для интегрального KPI
+                coef_kpi_z_ik = 0.0  # коэффициент при z_ik в формуле для интегрального KPI
                 for m in range(num_kpi_indicators):
                     # перебираем по очереди все интегральные показатели компетентности
                     # вычисляем текущее значение интегрального показателя
@@ -75,12 +82,31 @@ def optimize(x, q, a, invest_to_compet, activities_expectations, expectations_to
                     max_increase_z_ik = min(max_increase_z_ik, dist / coef_integral_z_ik)
 
                 # добавим коэффициент влияния на ожидания => выгорание
-                for m in range(num_kpi_indicators):
-                    # Также здесь мы упрощаем зависимость выгорания от ожиданий: эту зависимость мы линеаризуем
-                    # использовать переменную q_new
-                    pass
+                increase_q_ik = activities_expectations.calc_expectations(k, z[i, k] + max_increase_z_ik, q[i, k]) -\
+                                activities_expectations.calc_expectations(k, z[i, k], q[i, k])
+                # Также здесь мы упрощаем зависимость выгорания от ожиданий: эту зависимость мы линеаризуем
+                coef_kpi_q_ik = 0.0
+                for l in range(num_burnout_indicators):
+                    d_integral_d_q_ik = a[i, k] * expectations_to_burnout.w[l, k]
+                    # вычисляем текущее значение интегрального показателя ожиданий
+                    integral_expectations = np.dot(q[i, :] * a[i, :], expectations_to_burnout.w[l, :])
+                    if integral_expectations < expectations_to_burnout.r[l, 0] or\
+                            integral_expectations > expectations_to_burnout.r[l, num_expectation_classes - 1]:
+                        slope = 0.0
+                    else:
+                        # найдем ближайшую справа точку излома
+                        p = 0
+                        while integral_expectations > expectations_to_burnout.r[l, p]:
+                            p += 1
+                        # p - номер ближайшей справа точки излома
+                        slope = (expectations_to_burnout.e[l, p] - expectations_to_burnout.e[l, p - 1]) /\
+                                (expectations_to_burnout.r[l, p] - expectations_to_burnout.r[l, p - 1])
+                    coef_kpi_q_ik += d_integral_d_q_ik * slope *\
+                                     np.dot(compet_burnout_to_kpi.kpi_importance, compet_burnout_to_kpi.burnout_coef[:, l])
 
-              #  print(i, k, max_increase_z_ik, coef_kpi_z_ik)
+                coef_kpi_z_ik += coef_kpi_q_ik * increase_q_ik / max_increase_z_ik
+
+                #  print(i, k, max_increase_z_ik, coef_kpi_z_ik)
 
                 if (max_coef is None or coef_kpi_z_ik > max_coef) and max_increase_z_ik > z_eps:
                     max_coef = coef_kpi_z_ik
@@ -93,11 +119,8 @@ def optimize(x, q, a, invest_to_compet, activities_expectations, expectations_to
         budget_spent += increase_z_ik
         for j in range(num_compet):
             x_new[best_i, j] += invest_to_compet.alpha[j, best_k] * increase_z_ik
-        # TODO: записать, чему будет равно q_new
+        q_new[best_i, best_k] = activities_expectations.calc_expectations(best_k, z[best_i, best_k], q[best_i, best_k])
 
-
-                # не забыть придать приращение x_new, q_new, z и budget_spent
-        #break
         print("max_coef =", max_coef)
         print("increase_z_ik =", increase_z_ik)
         print("Потрачено:", budget_spent)

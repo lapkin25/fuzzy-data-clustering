@@ -39,10 +39,9 @@ for i in range(z.shape[0]):
         csvwriter.writerow([str(z[i, k]) for k in range(z.shape[1])])
 
 
-#kpi1 = calc_kpi(x_new, q_new, expectations.a[selected, :], expectations_to_burnout, compet_burnout_to_kpi)
-#print("Прогноз KPI: ", np.mean(kpi1, axis=0))
-#print("Реальные KPI: ", np.mean(kpi_t0.y[selected, :], axis=0))
-# print(np.dot(np.mean(kpi1, axis=0), kpi_importance)
+kpi1 = calc_kpi(x_new, q_new, expectations.a[selected, :], expectations_to_burnout, compet_burnout_to_kpi)
+print("Прогноз KPI: ", np.mean(kpi1, axis=0), " -> ", np.dot(np.mean(kpi1, axis=0), compet_burnout_to_kpi.kpi_importance))
+#print("Реальные KPI при t = 0: ", np.mean(kpi_t0.y[selected, :], axis=0))
 
 
 def plot_expectations_to_burnout(l):
