@@ -261,6 +261,7 @@ class CompetBurnoutToKPI:
         self.t = np.zeros((num_kpi_indicators, num_compet_classes + 1))
         self.c = np.zeros((num_kpi_indicators, num_compet_classes))
         self.r = np.zeros((num_kpi_indicators, num_compet_classes))
+        self.kpi_importance = np.zeros(num_kpi_indicators)
         self.burnout_intercept = np.zeros(num_kpi_indicators)
         self.burnout_coef = np.zeros((num_kpi_indicators, num_burnout_indicators))
         self.read(compet_data)
@@ -319,7 +320,14 @@ class CompetBurnoutToKPI:
             self.burnout_intercept[m] = float(row[0])
             self.burnout_coef[m, :] = np.array(list(map(float, row[1:])))
 
-        # TODO: прочитать коэффициенты важности KPI
+        file_name = "kpi_importance.csv"
+        with open(file_name) as fp:
+            reader = csv.reader(fp, delimiter=";")
+            data_str = [row for row in reader]
+        assert(len(data_str) == 1)
+        row = data_str[0]
+        assert(len(row) == num_kpi_indicators)
+        self.kpi_importance = np.array(list(map(float, row)))
 
     # вычислить зависимость m-го KPI от компетенций для отдельного сотрудника
     def calc_phi(self, m, x):

@@ -32,9 +32,9 @@ z, x_new, q_new = optimize(compet_t0.x[selected, :], expectations.q[selected, :]
          invest_to_compet, activities_expectations, expectations_to_burnout, compet_burnout_to_kpi,
          budget_constraints, total_budget)
 
-kpi1 = calc_kpi(x_new, q_new, expectations.a[selected, :], expectations_to_burnout, compet_burnout_to_kpi)
-print("Прогноз KPI: ", np.mean(kpi1, axis=0))
-print("Реальные KPI: ", np.mean(kpi_t0.y[selected, :], axis=0))
+#kpi1 = calc_kpi(x_new, q_new, expectations.a[selected, :], expectations_to_burnout, compet_burnout_to_kpi)
+#print("Прогноз KPI: ", np.mean(kpi1, axis=0))
+#print("Реальные KPI: ", np.mean(kpi_t0.y[selected, :], axis=0))
 # print(np.dot(np.mean(kpi1, axis=0), kpi_importance)
 
 
@@ -89,5 +89,6 @@ def plot_compet_to_kpi(m):
     plt.show()
 
 
-plot_expectations_to_burnout(0)
-plot_compet_to_kpi(0)
+# раскомментировать, если нужны графики
+#plot_expectations_to_burnout(0)
+#plot_compet_to_kpi(0)
