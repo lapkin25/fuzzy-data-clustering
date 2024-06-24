@@ -32,6 +32,7 @@ def optimize(x, q, a, invest_to_compet, activities_expectations, expectations_to
 def calc_kpi(x, q, a, expectations_to_burnout, compet_burnout_to_kpi):
     data_size = x.shape[0]
     num_kpi_indicators = compet_burnout_to_kpi.w.shape[0]
+    num_burnout_indicators = compet_burnout_to_kpi.burnout_coef.shape[1]
     kpi = np.zeros((data_size, num_kpi_indicators))
 
     for m in range(num_kpi_indicators):
@@ -39,7 +40,9 @@ def calc_kpi(x, q, a, expectations_to_burnout, compet_burnout_to_kpi):
         #integral_compet = np.dot(x, compet_burnout_to_kpi.w[m, :])
         for i in range(data_size):
             # считаем выгорание
-
+            b = np.zeros(num_burnout_indicators)
+            for l in range(num_burnout_indicators):
+                b[l] = expectations_to_burnout.calc_burnout(l, a[i, :], q[i, :])
             # считаем KPI
             kpi[i, m] = compet_burnout_to_kpi.calc_kpi(m, x[i, :], b)
 
