@@ -147,10 +147,10 @@ class ActivitiesExpectations:
             self.nu[k] = float(row[2]) * 3
 
     # рассчитать отклонения ожиданий в момент времени (t+1),
-    #   зная: m - номер направления мероприятий, s - объем инвестиций,
+    #   зная: k - номер направления мероприятий, s - объем инвестиций,
     #         qt - отклонения ожиданий в момент времени t
-    def calc_expectations(self, m, s, qt):
-        qnext = qt + 2 * (s - self.mu[m]) / (self.nu[m] - self.mu[m])
+    def calc_expectations(self, k, s, qt):
+        qnext = qt + 2 * (s - self.mu[k]) / (self.nu[k] - self.mu[k])
         if qnext < -1:
             qnext = -1
         if qnext > 1:
@@ -232,11 +232,13 @@ class CompetBurnoutToKPI:
     # t_p - границы диапазонов интегрального показателя компетентности
     #   t_p (p = 1..num_compet_classes-1) - границы между p-м и (p+1)-м диапазонами
     # c_p - центры диапазонов изменения KPI
+    # r_p - центры диапазонов изменения интегрального показателя компетентности
 
     def __init__(self, compet_data):
         self.w = np.zeros((num_kpi_indicators, num_compet))
         self.t = np.zeros((num_kpi_indicators, num_compet_classes + 1))
         self.c = np.zeros((num_kpi_indicators, num_compet_classes))
+        self.r = np.zeros((num_kpi_indicators, num_compet_classes))
         self.read(compet_data)
 
     def read(self, compet_data):
@@ -278,8 +280,28 @@ class CompetBurnoutToKPI:
             assert(len(row) == num_compet_classes)
             self.c[m, :] = np.array(list(map(float, row)))
 
+        for m in range(num_kpi_indicators):
+            self.r[m, :] = np.array([(self.t[m, i] + self.t[m, i + 1]) / 2 for i in range(num_compet_classes)])
+
         # TODO: прочитать коэффициенты зависимости KPI от выгорания
         # TODO: прочитать коэффициенты важности KPI
+
+    # вычислить зависимость m-го KPI от компетенций для отдельного сотрудника
+    def calc_phi(self, m, x):
+        integral_compet = np.dot(x, self.w[m, :])
+        if integral_compet < self.r[m, 0]:
+            return self.c[m, 0]
+        elif integral_compet > self.r[m, num_compet_classes - 1]:
+            return self.c[m, num_compet_classes - 1]
+        else:
+            # найдем ближайшую справа точку излома
+            p = 0
+            while integral_compet > self.r[m, p]:
+                p += 1
+            # p - номер ближайшей справа точки излома
+            # усредняем c[m, p - 1] и c[m, p]
+            lam = (integral_compet - self.r[m, p - 1]) / (self.r[m, p] - self.r[m, p - 1])
+            return self.c[m, p - 1] * (1 - lam) + self.c[m, p] * lam
 
 
 class BudgetConstraints:

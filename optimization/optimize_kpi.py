@@ -36,6 +36,9 @@ def calc_kpi(x, q, a, expectations_to_burnout, compet_burnout_to_kpi):
 
     for m in range(num_kpi_indicators):
         # интегральный показатель компетентности для каждого сотрудника
-        integral_compet = np.dot(x, compet_burnout_to_kpi.w[m, :])
+        #integral_compet = np.dot(x, compet_burnout_to_kpi.w[m, :])
+        #for i in range(data_size):
+        #    kpi[i, m] =
+        pass
 
     return kpi
