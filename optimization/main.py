@@ -35,8 +35,7 @@ z, x_new, q_new = optimize(compet_t0.x[selected, :], expectations.q[selected, :]
 csvfile = open('result.csv', 'w', newline='')
 csvwriter = csv.writer(csvfile, delimiter=';')
 for i in range(z.shape[0]):
-    for k in range(z.shape[1]):
-        csvwriter.writerow([str(z[i, k]) for k in range(z.shape[1])])
+    csvwriter.writerow([str(z[i, k]) for k in range(z.shape[1])])
 
 
 kpi1 = calc_kpi(x_new, q_new, expectations.a[selected, :], expectations_to_burnout, compet_burnout_to_kpi)
