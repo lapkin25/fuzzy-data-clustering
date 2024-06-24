@@ -239,6 +239,8 @@ class CompetBurnoutToKPI:
         self.t = np.zeros((num_kpi_indicators, num_compet_classes + 1))
         self.c = np.zeros((num_kpi_indicators, num_compet_classes))
         self.r = np.zeros((num_kpi_indicators, num_compet_classes))
+        self.burnout_intercept = np.zeros(num_kpi_indicators)
+        self.burnout_coef = np.zeros((num_kpi_indicators, num_burnout_indicators))
         self.read(compet_data)
 
     def read(self, compet_data):
@@ -283,7 +285,18 @@ class CompetBurnoutToKPI:
         for m in range(num_kpi_indicators):
             self.r[m, :] = np.array([(self.t[m, i] + self.t[m, i + 1]) / 2 for i in range(num_compet_classes)])
 
-        # TODO: прочитать коэффициенты зависимости KPI от выгорания
+        file_name = "burnout_to_kpi.csv"
+        with open(file_name) as fp:
+            reader = csv.reader(fp, delimiter=";")
+            next(reader, None)  # пропустить заголовки
+            data_str = [row for row in reader]
+        assert(len(data_str) == num_kpi_indicators)
+        for m, row in enumerate(data_str):
+            row = row[1:]
+            assert(len(row) == num_burnout_indicators + 1)
+            self.burnout_intercept[m] = float(row[0])
+            self.burnout_coef[m, :] = np.array(list(map(float, row[1:])))
+
         # TODO: прочитать коэффициенты важности KPI
 
     # вычислить зависимость m-го KPI от компетенций для отдельного сотрудника
@@ -302,6 +315,10 @@ class CompetBurnoutToKPI:
             # усредняем c[m, p - 1] и c[m, p]
             lam = (integral_compet - self.r[m, p - 1]) / (self.r[m, p] - self.r[m, p - 1])
             return self.c[m, p - 1] * (1 - lam) + self.c[m, p] * lam
+
+    # вычислить m-й KPI, зная компетенции и выгорание отдельного сотрудника
+    def calc_kpi(self, m, x, b):
+        return self.calc_phi(m, x) + self.burnout_intercept[m] + np.dot(self.burnout_coef[m, :], b)
 
 
 class BudgetConstraints:
