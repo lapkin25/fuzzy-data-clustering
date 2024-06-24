@@ -43,6 +43,13 @@ print("Прогноз KPI: ", np.mean(kpi1, axis=0), " -> ", np.dot(np.mean(kpi1
 #print("Реальные KPI при t = 0: ", np.mean(kpi_t0.y[selected, :], axis=0))
 
 
+plt.scatter(np.dot(kpi_t0.y[selected, :], compet_burnout_to_kpi.kpi_importance),
+            np.sum(z, axis=1), c=np.mean(burnout_t0.b[selected, :], axis=1), cmap='Reds')
+plt.xlabel("Агрегированный KPI при t = 0")
+plt.ylabel("Инвестиции в сотрудника")
+plt.show()
+
+
 def plot_expectations_to_burnout(l):
     integral_expectations = np.dot(expectations.q * expectations.a, expectations_to_burnout.w[l, :])
     min_x = np.min(integral_expectations)
