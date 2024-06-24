@@ -33,7 +33,8 @@ z, x_new, q_new = optimize(compet_t0.x[selected, :], expectations.q[selected, :]
          budget_constraints, total_budget)
 
 kpi1 = calc_kpi(x_new, q_new, expectations.a[selected, :], expectations_to_burnout, compet_burnout_to_kpi)
-print(np.mean(kpi1))
+print(np.mean(kpi1, axis=0))
+# print(np.dot(np.mean(kpi1, axis=0), kpi_importance)
 
 
 def plot_expectations_to_burnout(l):

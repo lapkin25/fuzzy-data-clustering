@@ -24,10 +24,18 @@ def optimize(x, q, a, invest_to_compet, activities_expectations, expectations_to
     return z, x_new, q_new
 
 
-# Расчет текущего KPI для всех сотрудников
+# Расчет KPI в текущий момент времени для всех сотрудников
 # Вход:
 #   x - массив I x J - компетенции сотрудников в текущий момент времени
 #   q - массив I x K - отклонения в ожиданиях сотрудников от мероприятий в текущий момент времени
 #   a - массив I x K - важность мероприятий для сотрудников
 def calc_kpi(x, q, a, expectations_to_burnout, compet_burnout_to_kpi):
-    return 0.0
+    data_size = x.shape[0]
+    num_kpi_indicators = compet_burnout_to_kpi.w.shape[0]
+    kpi = np.zeros((data_size, num_kpi_indicators))
+
+    for m in range(num_kpi_indicators):
+        # интегральный показатель компетентности для каждого сотрудника
+        integral_compet = np.dot(x, compet_burnout_to_kpi.w[m, :])
+
+    return kpi

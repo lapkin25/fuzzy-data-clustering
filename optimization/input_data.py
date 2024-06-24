@@ -279,6 +279,7 @@ class CompetBurnoutToKPI:
             self.c[m, :] = np.array(list(map(float, row)))
 
         # TODO: прочитать коэффициенты зависимости KPI от выгорания
+        # TODO: прочитать коэффициенты важности KPI
 
 
 class BudgetConstraints:
