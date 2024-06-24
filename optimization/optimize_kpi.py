@@ -21,6 +21,9 @@ def optimize(x, q, a, invest_to_compet, activities_expectations, expectations_to
     x_new = np.zeros((data_size, num_compet))
     q_new = np.zeros((data_size, num_activities))
 
+    x_new = x
+    q_new = q
+
     return z, x_new, q_new
 
 

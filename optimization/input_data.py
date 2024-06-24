@@ -166,10 +166,14 @@ class ExpectationsToBurnout:
     #   диапазонами интегрального показателя ожиданий и диапазонами показателя выгорания
     # t_p - границы диапазонов интегрального показателя ожиданий
     #   t_p (p = 1..num_expectation_classes-1) - границы между p-м и (p+1)-м диапазонами
+    # r_p - центры диапазонов изменения интегрального показателя ожиданий
+    # e_p - ожидаемые значения показателя выгорания в центрах r_p
     # равномерные диапазоны значений показателя выгорания
     def __init__(self, expectations_data):
         self.w = np.zeros((num_burnout_indicators, num_activities))
         self.t = np.zeros((num_burnout_indicators, num_expectation_classes + 1))
+        self.r = np.zeros((num_burnout_indicators, num_expectation_classes))
+        self.e = np.zeros((num_burnout_indicators, num_expectation_classes))
         self.corr_matrix = np.zeros((num_burnout_indicators, num_expectation_classes, num_expectation_classes))
         self.read(expectations_data)
         
@@ -208,17 +212,35 @@ class ExpectationsToBurnout:
             self.t[l, 0] = np.min(integral_expectations)
             self.t[l, num_expectation_classes] = np.max(integral_expectations)
 
+        y_min = 0
+        y_max = 100
+        avg_y = np.array([(i + 0.5) * (y_max - y_min) / num_expectation_classes
+                          for i in range(num_expectation_classes)])
+        for l in range(num_burnout_indicators):
+            self.r[l, :] = np.array([(self.t[l, i] + self.t[l, i + 1]) / 2 for i in range(num_expectation_classes)])
+            self.e[l, :] = np.dot(self.corr_matrix[l, :, :], avg_y)
 
-    # рассчитать кусочно-линейную зависимость psi_l, заданную координатами узловых точек
-        
     # рассчитать l-й показатель выгорания, зная:
     #   a_m - вектор важности для сотрудника каждого m-го направления мероприятий
     #   q_m - вектор отклонений ожиданий сотрудника от реализации m-го направления мероприятий
     def calc_burnout(self, l, a, q):
-        pass
+        integral_expectations = np.dot(q * a, self.w[l, :])
+        if integral_expectations < self.r[l, 0]:
+            return self.e[l, 0]
+        elif integral_expectations > self.r[l, num_expectation_classes - 1]:
+            return self.e[l, num_expectation_classes - 1]
+        else:
+            # найдем ближайшую справа точку излома
+            p = 0
+            while integral_expectations > self.r[l, p]:
+                p += 1
+            # p - номер ближайшей справа точки излома
+            # усредняем e[l, p - 1] и e[l, p]
+            lam = (integral_expectations - self.r[l, p - 1]) / (self.r[l, p] - self.r[l, p - 1])
+            return self.e[l, p - 1] * (1 - lam) + self.e[l, p] * lam
+
         
-    # внести в этот класс диапазоны интегрального показателя
-    # также добавить функцию расчета коэффициентов линеаризованной модели
+    # TODO: добавить функцию расчета коэффициентов линеаризованной модели
     #   (в рамках текущего диапазона интегрального показателя), если заданы векторы a, q
 
 
