@@ -38,6 +38,26 @@ csvwriter = csv.writer(csvfile, delimiter=';')
 for i in range(z.shape[0]):
     csvwriter.writerow([str(z[i, k]) for k in range(z.shape[1])])
 
+csvfile = open('x.csv', 'w', newline='')
+csvwriter = csv.writer(csvfile, delimiter=';')
+for i in range(compet_t0.x[selected, :].shape[0]):
+    csvwriter.writerow([str(compet_t0.x[selected, :][i, j]) for j in range(compet_t0.x[selected, :].shape[1])])
+
+csvfile = open('x_new.csv', 'w', newline='')
+csvwriter = csv.writer(csvfile, delimiter=';')
+for i in range(x_new.shape[0]):
+    csvwriter.writerow([str(x_new[i, j]) for j in range(x_new.shape[1])])
+
+csvfile = open('q.csv', 'w', newline='')
+csvwriter = csv.writer(csvfile, delimiter=';')
+for i in range(expectations.q[selected, :].shape[0]):
+    csvwriter.writerow([str(expectations.q[selected, :][i, k]) for k in range(expectations.q[selected, :].shape[1])])
+
+csvfile = open('q_new.csv', 'w', newline='')
+csvwriter = csv.writer(csvfile, delimiter=';')
+for i in range(q_new.shape[0]):
+    csvwriter.writerow([str(q_new[i, k]) for k in range(q_new.shape[1])])
+
 
 kpi1 = calc_kpi(x_new, q_new, expectations.a[selected, :], expectations_to_burnout, compet_burnout_to_kpi)
 print("Прогноз KPI: ", np.mean(kpi1, axis=0), " -> ", np.dot(np.mean(kpi1, axis=0), compet_burnout_to_kpi.kpi_importance))
@@ -82,8 +102,6 @@ plt.xlabel("Интегральный показатель ожиданий пр�
 plt.ylabel("Инвестиции в сотрудника")
 plt.show()
 
-
-# TODO: вывести в отдельные файлы: x, x_new, q, q_new
 
 def plot_expectations_to_burnout(l):
     integral_expectations = np.dot(expectations.q * expectations.a, expectations_to_burnout.w[l, :])

@@ -105,11 +105,14 @@ def optimize(x, q, a, invest_to_compet, activities_expectations, expectations_to
                                      np.dot(compet_burnout_to_kpi.kpi_importance, compet_burnout_to_kpi.burnout_coef[:, l])
 
                 coef_kpi_z_ik += coef_kpi_q_ik * increase_q_ik / max_increase_z_ik
+                # прирост коэффициента за счет влияния на выгорание
+                coef_kpi_z_ik_burnout = coef_kpi_q_ik * increase_q_ik / max_increase_z_ik
 
                 #  print(i, k, max_increase_z_ik, coef_kpi_z_ik)
 
                 if (max_coef is None or coef_kpi_z_ik > max_coef) and max_increase_z_ik > z_eps:
                     max_coef = coef_kpi_z_ik
+                    coef_burnout = coef_kpi_z_ik_burnout
                     best_i = i
                     best_k = k
                     increase_z_ik = max_increase_z_ik
@@ -122,6 +125,7 @@ def optimize(x, q, a, invest_to_compet, activities_expectations, expectations_to
         q_new[best_i, best_k] = activities_expectations.calc_expectations(best_k, z[best_i, best_k], q[best_i, best_k])
 
         print("max_coef =", max_coef)
+        print("coef_burnout =", coef_burnout)
         print("increase_z_ik =", increase_z_ik)
         print("Потрачено:", budget_spent)
 
