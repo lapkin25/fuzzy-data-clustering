@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
 from input_data import *
 from optimize_kpi import optimize, calc_kpi
 
@@ -65,6 +66,22 @@ plt.scatter(np.dot(expectations.q[selected, :] * expectations.a[selected, :], ex
 plt.xlabel("Интегральный показатель ожиданий при t = 0")
 plt.ylabel("Инвестиции в сотрудника")
 plt.show()
+
+kmeans = KMeans(n_clusters=3, random_state=123, max_iter=100)
+cluster_labels = kmeans.fit_predict(np.abs(expectations.a[selected, :]))
+print(kmeans.cluster_centers_)
+#plt.scatter(np.dot(expectations.q[selected, :] * expectations.a[selected, :], expectations_to_burnout.w[0, :]),
+#            np.sum(z, axis=1), c=kmeans.labels_, marker='o')
+plt.scatter(np.dot(expectations.q[selected, :][cluster_labels == 0, :] * expectations.a[selected, :][cluster_labels == 0, :], expectations_to_burnout.w[0, :]),
+            np.sum(z[cluster_labels == 0], axis=1), c='red')
+plt.scatter(np.dot(expectations.q[selected, :][cluster_labels == 1, :] * expectations.a[selected, :][cluster_labels == 1, :], expectations_to_burnout.w[0, :]),
+            np.sum(z[cluster_labels == 1], axis=1), c='blue')
+plt.scatter(np.dot(expectations.q[selected, :][cluster_labels == 2, :] * expectations.a[selected, :][cluster_labels == 2, :], expectations_to_burnout.w[0, :]),
+            np.sum(z[cluster_labels == 2], axis=1), c='green')
+plt.xlabel("Интегральный показатель ожиданий при t = 0")
+plt.ylabel("Инвестиции в сотрудника")
+plt.show()
+
 
 # TODO: вывести в отдельные файлы: x, x_new, q, q_new
 
