@@ -49,6 +49,24 @@ plt.xlabel("Агрегированный KPI при t = 0")
 plt.ylabel("Инвестиции в сотрудника")
 plt.show()
 
+plt.scatter(np.dot(compet_t0.x[selected, :], compet_burnout_to_kpi.w[0, :]),
+            np.sum(z, axis=1), c=np.mean(burnout_t0.b[selected, :], axis=1), cmap='Reds')
+plt.xlabel("Интегральный показатель компетентности при t = 0")
+plt.ylabel("Инвестиции в сотрудника")
+plt.show()
+
+plt.scatter(np.mean(burnout_t0.b[selected, :], axis=1), np.sum(z, axis=1))
+plt.xlabel("Выгорание при t = 0")
+plt.ylabel("Инвестиции в сотрудника")
+plt.show()
+
+plt.scatter(np.dot(expectations.q[selected, :] * expectations.a[selected, :], expectations_to_burnout.w[0, :]),
+            np.sum(z, axis=1), c=np.mean(burnout_t0.b[selected, :], axis=1), cmap='Reds')
+plt.xlabel("Интегральный показатель ожиданий при t = 0")
+plt.ylabel("Инвестиции в сотрудника")
+plt.show()
+
+# TODO: вывести в отдельные файлы: x, x_new, q, q_new
 
 def plot_expectations_to_burnout(l):
     integral_expectations = np.dot(expectations.q * expectations.a, expectations_to_burnout.w[l, :])
