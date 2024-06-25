@@ -25,6 +25,7 @@ random_state = 1
 np.random.seed(random_state)
 indices = np.random.permutation(data_size)
 selected = indices[:selected_data_size]
+print("Индексы выбранных сотрудников: ", selected)
 
 # бюджет: 500000 в год на человека
 total_budget = 500000 / 4 * selected_data_size
@@ -32,6 +33,16 @@ total_budget = 500000 / 4 * selected_data_size
 z, x_new, q_new = optimize(compet_t0.x[selected, :], expectations.q[selected, :], expectations.a[selected, :],
          invest_to_compet, activities_expectations, expectations_to_burnout, compet_burnout_to_kpi,
          budget_constraints, total_budget)
+
+
+"""
+# еще квартал
+z, x_new, q_new = optimize(x_new, q_new, expectations.a[selected, :],
+         invest_to_compet, activities_expectations, expectations_to_burnout, compet_burnout_to_kpi,
+         budget_constraints, total_budget)
+"""
+
+print("Распределение по направлениям:", np.sum(z, axis=0))
 
 csvfile = open('result.csv', 'w', newline='')
 csvwriter = csv.writer(csvfile, delimiter=';')
@@ -61,7 +72,7 @@ for i in range(q_new.shape[0]):
 
 kpi1 = calc_kpi(x_new, q_new, expectations.a[selected, :], expectations_to_burnout, compet_burnout_to_kpi)
 print("Прогноз KPI: ", np.mean(kpi1, axis=0), " -> ", np.dot(np.mean(kpi1, axis=0), compet_burnout_to_kpi.kpi_importance))
-#print("Реальные KPI при t = 0: ", np.mean(kpi_t0.y[selected, :], axis=0))
+print("Реальные KPI при t = 0: ", np.mean(kpi_t0.y[selected, :], axis=0))
 
 
 plt.scatter(np.dot(kpi_t0.y[selected, :], compet_burnout_to_kpi.kpi_importance),

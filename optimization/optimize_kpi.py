@@ -19,7 +19,7 @@ def optimize(x, q, a, invest_to_compet, activities_expectations, expectations_to
     num_expectation_classes = expectations_to_burnout.r.shape[1]
 
     # количество инвестиций в каждого сотрудника по каждому из направлений
-    z = np.zeros((data_size, num_activities))
+    z = np.zeros((data_size, num_activities), dtype=float)
 
     # ограничения на инвестиции в каждое направление
     budget_activities = budget_constraints.budget_activities_percent / 100 * total_budget
@@ -38,7 +38,7 @@ def optimize(x, q, a, invest_to_compet, activities_expectations, expectations_to
         for k in range(num_activities):
             q_new[i, k] = max(min(q[i, k] + 2 * (- activities_expectations.mu[k]) /\
                           (activities_expectations.nu[k] - activities_expectations.mu[k]), 1), -1)
-    while budget_spent < total_budget:
+    while budget_spent + z_eps < total_budget:
         best_i = None
         best_k = None
         max_coef = None
@@ -118,6 +118,8 @@ def optimize(x, q, a, invest_to_compet, activities_expectations, expectations_to
                     increase_z_ik = max_increase_z_ik
 
         # вкладываем инвестиции в выбранного i-го человека и выбранное k-е мероприятие
+        if increase_z_ik is None:
+            break
         z[best_i, best_k] += increase_z_ik
         budget_spent += increase_z_ik
         for j in range(num_compet):
