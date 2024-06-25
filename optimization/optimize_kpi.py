@@ -89,7 +89,7 @@ def optimize(x, q, a, invest_to_compet, activities_expectations, expectations_to
                 for l in range(num_burnout_indicators):
                     d_integral_d_q_ik = a[i, k] * expectations_to_burnout.w[l, k]
                     # вычисляем текущее значение интегрального показателя ожиданий
-                    integral_expectations = np.dot(q[i, :] * a[i, :], expectations_to_burnout.w[l, :])
+                    integral_expectations = np.dot(q_new[i, :] * a[i, :], expectations_to_burnout.w[l, :])
                     if integral_expectations < expectations_to_burnout.r[l, 0] or\
                             integral_expectations > expectations_to_burnout.r[l, num_expectation_classes - 1]:
                         slope = 0.0
