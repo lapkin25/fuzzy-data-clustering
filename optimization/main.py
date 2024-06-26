@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
+import random
 from input_data import *
 from optimize_kpi import optimize, calc_kpi
 
@@ -29,6 +30,14 @@ print("Индексы выбранных сотрудников: ", selected)
 
 # бюджет: 500000 в год на человека
 total_budget = 500000 / 4 * selected_data_size
+
+"""
+# вносим возмущения в коэффициенты
+for m in range(num_kpi_indicators):
+    for j in range(num_compet):
+        #compet_burnout_to_kpi.w[m, j] *= random.gauss(mu=1, sigma=0.03)
+        compet_burnout_to_kpi.w[m, j] *= random.uniform(0.97, 1.03)
+"""
 
 z, x_new, q_new = optimize(compet_t0.x[selected, :], expectations.q[selected, :], expectations.a[selected, :],
          invest_to_compet, activities_expectations, expectations_to_burnout, compet_burnout_to_kpi,
@@ -107,7 +116,6 @@ plt.ylabel("Инвестиции в сотрудника")
 plt.show()
 
 
-
 # еще 3 квартала
 sum_z = z.copy()
 z_quarterly_empl = np.sum(z, axis=1)
@@ -138,13 +146,62 @@ for i in range(sum_z.shape[0]):
 
 # TODO: вывести таблицу по людям, сколько в них вложили в каждый из кварталов
 
-# TODO: при построении графиков не забыть про момент времени t = 0
-
 # График 1: динамика инвестиций в зависимости от компетенций
+
+plt.figure()
+for i in range(x_new.shape[0]):
+    # x - компетенция на начало периода
+    x_coord = np.array([np.dot(compet_t0.x[selected[i], :], compet_burnout_to_kpi.w[0, :]) / np.linalg.norm(compet_burnout_to_kpi.w[0, :])] +
+                        [np.dot(x_quarterly[t][i, :], compet_burnout_to_kpi.w[0, :] / np.linalg.norm(compet_burnout_to_kpi.w[0, :])) for t in range(3)])
+    # y - вложения за период
+    y_coord = z_quarterly_empl[i, :]
+    plt.quiver(x_coord[:-1], y_coord[:-1], x_coord[1:] - x_coord[:-1], y_coord[1:] - y_coord[:-1],
+               scale_units='xy', angles='xy', scale=1, width=0.002, headwidth=8, headlength=10,
+               linestyle='dashed', facecolor='none', linewidth=0.4, edgecolor=['red', 'green', 'blue'])
+plt.xlabel("Интегральный показатель компетентности")
+plt.ylabel("Инвестиции в сотрудника")
+plt.savefig('fig1.png', dpi=300)
+plt.show()
 
 # График 2: динамика инвестиций в зависимости от выгорания
 
+plt.figure()
+for i in range(x_new.shape[0]):
+    # x - компетенция на начало периода
+    x_coord = np.array([np.mean([expectations_to_burnout.calc_burnout(l, expectations.a[selected[i], :], expectations.q[selected[i], :])
+                                 for l in range(num_burnout_indicators)])] +
+                       [np.mean([expectations_to_burnout.calc_burnout(l, expectations.a[selected[i], :], q_quarterly[t][i, :])
+                                 for l in range(num_burnout_indicators)]) for t in range(3)])
+    # y - вложения за период
+    y_coord = z_quarterly_empl[i, :]
+    plt.quiver(x_coord[:-1], y_coord[:-1], x_coord[1:] - x_coord[:-1], y_coord[1:] - y_coord[:-1],
+               scale_units='xy', angles='xy', scale=1, width=0.002, headwidth=8, headlength=10,
+               linestyle='dashed', facecolor='none', linewidth=0.4, edgecolor=['red', 'green', 'blue'])
+plt.xlabel("Интегральный показатель выгорания")
+plt.ylabel("Инвестиции в сотрудника")
+plt.savefig('fig2.png', dpi=300)
+plt.show()
+
+#plt.scatter(np.mean(burnout_t0.b[selected, :], axis=1), np.sum(z, axis=1))
+#lt.xlabel("Выгорание при t = 0")
+#plt.ylabel("Инвестиции в сотрудника")
+#plt.show()
+
 # График 3: суммарные инвестиции за год в зависимости от ожиданий с кластеризацией по ожиданиям
+
+kmeans = KMeans(n_clusters=3, random_state=123, max_iter=100)
+cluster_labels = kmeans.fit_predict(np.abs(expectations.a[selected, :]))
+print(kmeans.cluster_centers_)
+plt.scatter(np.dot(expectations.q[selected, :][cluster_labels == 0, :] * expectations.a[selected, :][cluster_labels == 0, :], expectations_to_burnout.w[0, :]),
+            np.sum(sum_z[cluster_labels == 0], axis=1), c='red')
+plt.scatter(np.dot(expectations.q[selected, :][cluster_labels == 1, :] * expectations.a[selected, :][cluster_labels == 1, :], expectations_to_burnout.w[0, :]),
+            np.sum(sum_z[cluster_labels == 1], axis=1), c='green')
+plt.scatter(np.dot(expectations.q[selected, :][cluster_labels == 2, :] * expectations.a[selected, :][cluster_labels == 2, :], expectations_to_burnout.w[0, :]),
+            np.sum(sum_z[cluster_labels == 2], axis=1), c='blue')
+plt.xlabel("Интегральный показатель ожиданий")
+plt.ylabel("Инвестиции в сотрудника за год")
+plt.savefig('fig3.png', dpi=300)
+plt.show()
 
 
 def plot_expectations_to_burnout(l):
