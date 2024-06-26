@@ -34,14 +34,6 @@ z, x_new, q_new = optimize(compet_t0.x[selected, :], expectations.q[selected, :]
          invest_to_compet, activities_expectations, expectations_to_burnout, compet_burnout_to_kpi,
          budget_constraints, total_budget)
 
-
-"""
-# еще квартал
-z, x_new, q_new = optimize(x_new, q_new, expectations.a[selected, :],
-         invest_to_compet, activities_expectations, expectations_to_burnout, compet_burnout_to_kpi,
-         budget_constraints, total_budget)
-"""
-
 print("Распределение по направлениям:", np.sum(z, axis=0))
 
 csvfile = open('result.csv', 'w', newline='')
@@ -112,6 +104,25 @@ plt.scatter(np.dot(expectations.q[selected, :][cluster_labels == 2, :] * expecta
 plt.xlabel("Интегральный показатель ожиданий при t = 0")
 plt.ylabel("Инвестиции в сотрудника")
 plt.show()
+
+
+
+# еще 3 квартала
+sum_z = z.copy()
+for quart in range(2, 5):
+    z, x_new, q_new = optimize(x_new, q_new, expectations.a[selected, :],
+             invest_to_compet, activities_expectations, expectations_to_burnout, compet_burnout_to_kpi,
+             budget_constraints, total_budget)
+    sum_z += z
+    print("Квартал", quart)
+    print("Распределение по направлениям:", np.sum(z, axis=0))
+    kpi1 = calc_kpi(x_new, q_new, expectations.a[selected, :], expectations_to_burnout, compet_burnout_to_kpi)
+    print("Прогноз KPI: ", np.mean(kpi1, axis=0), " -> ", np.dot(np.mean(kpi1, axis=0), compet_burnout_to_kpi.kpi_importance))
+
+csvfile = open('result_year.csv', 'w', newline='')
+csvwriter = csv.writer(csvfile, delimiter=';')
+for i in range(sum_z.shape[0]):
+    csvwriter.writerow([str(sum_z[i, k]) for k in range(sum_z.shape[1])])
 
 
 def plot_expectations_to_burnout(l):
