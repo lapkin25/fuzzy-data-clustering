@@ -112,6 +112,8 @@ plt.show()
 sum_z = z.copy()
 z_quarterly_empl = np.sum(z, axis=1)
 z_quarterly_activities = np.sum(z, axis=0)
+x_quarterly = [x_new]
+q_quarterly = [q_new]
 for quart in range(2, 5):
     z, x_new, q_new = optimize(x_new, q_new, expectations.a[selected, :],
              invest_to_compet, activities_expectations, expectations_to_burnout, compet_burnout_to_kpi,
@@ -119,6 +121,8 @@ for quart in range(2, 5):
     sum_z += z
     z_quarterly_empl = np.c_[z_quarterly_empl, np.sum(z, axis=1)]
     z_quarterly_activities = np.c_[z_quarterly_activities, np.sum(z, axis=0)]
+    x_quarterly.append(x_new)
+    q_quarterly.append(q_new)
     print("Квартал", quart)
     print("Распределение по направлениям:", np.sum(z, axis=0))
     kpi1 = calc_kpi(x_new, q_new, expectations.a[selected, :], expectations_to_burnout, compet_burnout_to_kpi)
@@ -133,6 +137,14 @@ for i in range(sum_z.shape[0]):
     csvwriter.writerow([str(sum_z[i, k]) for k in range(sum_z.shape[1])])
 
 # TODO: вывести таблицу по людям, сколько в них вложили в каждый из кварталов
+
+# TODO: при построении графиков не забыть про момент времени t = 0
+
+# График 1: динамика инвестиций в зависимости от компетенций
+
+# График 2: динамика инвестиций в зависимости от выгорания
+
+# График 3: суммарные инвестиции за год в зависимости от ожиданий с кластеризацией по ожиданиям
 
 
 def plot_expectations_to_burnout(l):
