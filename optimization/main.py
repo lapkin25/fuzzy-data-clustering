@@ -168,10 +168,12 @@ plt.show()
 plt.figure()
 for i in range(x_new.shape[0]):
     # x - компетенция на начало периода
-    x_coord = np.array([np.mean([expectations_to_burnout.calc_burnout(l, expectations.a[selected[i], :], expectations.q[selected[i], :])
-                                 for l in range(num_burnout_indicators)])] +
-                       [np.mean([expectations_to_burnout.calc_burnout(l, expectations.a[selected[i], :], q_quarterly[t][i, :])
-                                 for l in range(num_burnout_indicators)]) for t in range(3)])
+#    x_coord = np.array([np.mean([expectations_to_burnout.calc_burnout(l, expectations.a[selected[i], :], expectations.q[selected[i], :])
+#                                 for l in range(num_burnout_indicators)])] +
+#                       [np.mean([expectations_to_burnout.calc_burnout(l, expectations.a[selected[i], :], q_quarterly[t][i, :])
+#                                 for l in range(num_burnout_indicators)]) for t in range(3)])
+    x_coord = np.array([np.mean([expectations_to_burnout.calc_burnout(l, expectations.a[selected[i], :], q_quarterly[t][i, :])
+                                 for l in range(num_burnout_indicators)]) for t in range(4)])
     # y - вложения за период
     y_coord = z_quarterly_empl[i, :]
     plt.quiver(x_coord[:-1], y_coord[:-1], x_coord[1:] - x_coord[:-1], y_coord[1:] - y_coord[:-1],
