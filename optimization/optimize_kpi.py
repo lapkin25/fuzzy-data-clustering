@@ -43,6 +43,25 @@ def optimize(x, q, a, invest_to_compet, activities_expectations, expectations_to
         best_k = None
         max_coef = None
         increase_z_ik = None
+
+#        for i in [np.random.choice(data_size)]:
+#            for k in [np.random.choice(num_activities)]:
+
+        #stop = False
+        #coef_burnout = None
+        """
+        for i in range(data_size):
+            if stop:
+                break
+            for k in range(num_activities):
+                if z[i, k] == 0:
+                    best_i = i
+                    best_k = k
+                    increase_z_ik = total_budget / num_activities / data_size
+                    stop = True
+                    break
+        """
+
         for i in range(data_size):
             for k in range(num_activities):
                 # максимальное приращение z[i, k]
