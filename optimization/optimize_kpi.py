@@ -47,9 +47,9 @@ def optimize(x, q, a, invest_to_compet, activities_expectations, expectations_to
 #        for i in [np.random.choice(data_size)]:
 #            for k in [np.random.choice(num_activities)]:
 
-        #stop = False
-        #coef_burnout = None
         """
+        stop = False
+        coef_burnout = None        
         for i in range(data_size):
             if stop:
                 break
@@ -60,6 +60,8 @@ def optimize(x, q, a, invest_to_compet, activities_expectations, expectations_to
                     increase_z_ik = total_budget / num_activities / data_size
                     stop = True
                     break
+                else:
+                    continue
         """
 
         for i in range(data_size):
