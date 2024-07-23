@@ -58,7 +58,11 @@ KPI_importance = np.array([0.3, 0.2, 0.4, 0.1])
 
 #KPI_ind = 0  # интересующий показатель KPI
 # берем для каждого сотрудника его компетенции в последний момент времени
-data_x = np.array(compet[t_num - 1])
+#data_x = np.array(compet[t_num - 1])
+
+# берем для каждого сотрудника его компетенции в начальный момент времени
+data_x = np.array(compet[0])
+
 # берем для каждого сотрудника среднее KPI за все моменты времени
 #data_y = np.array([np.mean([kpi[t][i][KPI_ind] for t in range(t_num)]) for i in range(data_size)])
 
