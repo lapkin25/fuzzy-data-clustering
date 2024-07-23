@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from input_data import *
+from optimize_kpi import optimize1, calc_kpi
 
 
 # исходные данные
@@ -14,6 +15,28 @@ invest_to_compet = InvestToCompet("invest_to_compet.csv")
 activities_expectations = ActivitiesExpectations("data_min_max_expectations.csv")
 expectations_to_burnout = ExpectationsToBurnout(expectations)
 compet_burnout_to_kpi = CompetBurnoutToKPI(compet_t0)
+
+# ограничения оптимизации
+budget_constraints = BudgetConstraints("budget_activities.csv")
+
+# создаем случайную выборку из 100 людей
+selected_data_size = 100
+random_state = 1
+np.random.seed(random_state)
+indices = np.random.permutation(data_size)
+selected = indices[:selected_data_size]
+print("Индексы выбранных сотрудников: ", selected)
+
+# бюджет: 500000 в год на человека
+total_budget = 500000 / 4 * selected_data_size
+
+budget1 = total_budget / 2
+
+# здесь потом будет вызов общей функции optimize с тем же интерфейсом, что и раньше
+#   с последующим расчетом KPI
+z = optimize1(compet_t0.x[selected, :], expectations.q[selected, :], expectations.a[selected, :],
+              invest_to_compet, activities_expectations, expectations_to_burnout, compet_burnout_to_kpi,
+              budget_constraints, total_budget, budget1)
 
 
 def plot_expectations_to_burnout():
@@ -68,5 +91,5 @@ def plot_compet_to_kpi():
     plt.show()
 
 
-plot_expectations_to_burnout()
-plot_compet_to_kpi()
+#plot_expectations_to_burnout()
+#plot_compet_to_kpi()

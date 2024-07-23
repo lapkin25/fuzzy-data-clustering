@@ -342,7 +342,7 @@ class CompetBurnoutToKPI:
             return self.c[p - 1] * (1 - lam) + self.c[p] * lam
 
     # вычислить m-й KPI, зная компетенции и выгорание отдельного сотрудника
-    def calc_kpi(self, m, x, b):
+    def calc_kpi(self, x, b):
         return self.calc_phi(x) + self.burnout_intercept + self.burnout_coef * b
 
 
