@@ -4,11 +4,16 @@ from input_data import *
 
 # исходные данные
 expectations = ExpectationsData("data_deviation_expectations.csv")
+compet_t0 = CompetData("data_compet_t0.csv")
 burnout_t0 = BurnoutData("data_burnout_t0.csv")
+kpi_t0 = KPIData("data_kpi_t0.csv")
 # TODO: исходные данные по выгоранию должны быть сразу агрегированными
 
 # эконометрические зависимости
+invest_to_compet = InvestToCompet("invest_to_compet.csv")
+activities_expectations = ActivitiesExpectations("data_min_max_expectations.csv")
 expectations_to_burnout = ExpectationsToBurnout(expectations)
+compet_burnout_to_kpi = CompetBurnoutToKPI(compet_t0)
 
 
 def plot_expectations_to_burnout():
@@ -34,5 +39,34 @@ def plot_expectations_to_burnout():
     plt.ylabel("Показатель выгорания")
     plt.show()
 
+def plot_compet_to_kpi():
+    integral_compet = np.dot(compet_t0.x, compet_burnout_to_kpi.w)
+    min_x = np.min(integral_compet)
+    max_x = np.max(integral_compet)
+    integral_kpi = np.dot(kpi_t0.y, compet_burnout_to_kpi.kpi_importance)
+    min_y = np.min(integral_kpi)
+    max_y = np.max(integral_kpi)
+
+    #plt.plot(integral_compet, kpi_t0.y[:, m], 'ro')
+    plt.scatter(integral_compet, integral_kpi, c=burnout_t0.b, cmap='Reds')
+
+    for i in range(1, num_compet_classes):
+        plt.plot([compet_burnout_to_kpi.t[i], compet_burnout_to_kpi.t[i]], [min_y, max_y], 'g')
+
+    for i in range(num_compet_classes):
+        x1 = compet_burnout_to_kpi.t[i]
+        x2 = compet_burnout_to_kpi.t[i + 1]
+        plt.plot([x1, x2], [compet_burnout_to_kpi.c[i], compet_burnout_to_kpi.c[i]], 'b', linestyle='dashed')
+
+    avg_x = np.array([(compet_burnout_to_kpi.t[i] + compet_burnout_to_kpi.t[i + 1]) / 2
+                      for i in range(num_compet_classes)])
+    avg_y = compet_burnout_to_kpi.c
+    plt.plot(np.hstack([[min_x], avg_x, [max_x]]), np.hstack([[avg_y[0]], avg_y, [avg_y[num_compet_classes - 1]]]), 'k', linewidth=3)
+
+    plt.xlabel("Интегральный показатель компетентности")
+    plt.ylabel("KPI")
+    plt.show()
+
 
 plot_expectations_to_burnout()
+plot_compet_to_kpi()

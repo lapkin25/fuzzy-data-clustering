@@ -16,7 +16,7 @@ num_kpi_indicators = 4
 # число диапазонов интегрального показателя ожиданий
 num_expectation_classes = 5
 # число диапазонов интегрального показателя компетентности
-num_compet_classes = 6
+num_compet_classes = 5
 
 
 class InvestToCompet:
@@ -258,13 +258,13 @@ class CompetBurnoutToKPI:
     # r_p - центры диапазонов изменения интегрального показателя компетентности
 
     def __init__(self, compet_data):
-        self.w = np.zeros((num_kpi_indicators, num_compet))
-        self.t = np.zeros((num_kpi_indicators, num_compet_classes + 1))
-        self.c = np.zeros((num_kpi_indicators, num_compet_classes))
-        self.r = np.zeros((num_kpi_indicators, num_compet_classes))
+        self.w = np.zeros(num_compet)
+        self.t = np.zeros(num_compet_classes + 1)
+        self.c = np.zeros(num_compet_classes)
+        self.r = np.zeros(num_compet_classes)
         self.kpi_importance = np.zeros(num_kpi_indicators)
-        self.burnout_intercept = np.zeros(num_kpi_indicators)
-        self.burnout_coef = np.zeros((num_kpi_indicators, num_burnout_indicators))
+        self.burnout_intercept = 0.0
+        self.burnout_coef = 0.0
         self.read(compet_data)
 
     def read(self, compet_data):
@@ -273,53 +273,47 @@ class CompetBurnoutToKPI:
             reader = csv.reader(fp, delimiter=";")
             next(reader, None)  # пропустить заголовки
             data_str = [row for row in reader]
-        assert(len(data_str) == num_kpi_indicators)
-        for m, row in enumerate(data_str):
-            row = row[1:]
-            assert(len(row) == num_compet)
-            self.w[m, :] = np.array(list(map(float, row)))
+        assert(len(data_str) == 1)
+        row = data_str[0][1:]
+        assert(len(row) == num_compet)
+        self.w = np.array(list(map(float, row)))
 
         file_name = "compet_to_kpi_intervals.csv"
         with open(file_name) as fp:
             reader = csv.reader(fp, delimiter=";")
             next(reader, None)  # пропустить заголовки
             data_str = [row for row in reader]
-        assert(len(data_str) == num_kpi_indicators)
-        for m, row in enumerate(data_str):
-            row = row[1:]
-            assert(len(row) == num_compet_classes - 1)
-            self.t[m, 1:num_compet_classes] = np.array(list(map(float, row)))
+        assert(len(data_str) == 1)
+        row = data_str[0][1:]
+        assert(len(row) == num_compet_classes - 1)
+        self.t[1:num_compet_classes] = np.array(list(map(float, row)))
 
-        for m in range(num_kpi_indicators):
-            integral_compet = np.dot(compet_data.x, self.w[m, :])
-            self.t[m, 0] = np.min(integral_compet)
-            self.t[m, num_compet_classes] = np.max(integral_compet)
+        integral_compet = np.dot(compet_data.x, self.w)
+        self.t[0] = np.min(integral_compet)
+        self.t[num_compet_classes] = np.max(integral_compet)
 
         file_name = "compet_to_kpi_average.csv"
         with open(file_name) as fp:
             reader = csv.reader(fp, delimiter=";")
             next(reader, None)  # пропустить заголовки
             data_str = [row for row in reader]
-        assert(len(data_str) == num_kpi_indicators)
-        for m, row in enumerate(data_str):
-            row = row[1:]
-            assert(len(row) == num_compet_classes)
-            self.c[m, :] = np.array(list(map(float, row)))
+        assert(len(data_str) == 1)
+        row = data_str[0][1:]
+        assert(len(row) == num_compet_classes)
+        self.c = np.array(list(map(float, row)))
 
-        for m in range(num_kpi_indicators):
-            self.r[m, :] = np.array([(self.t[m, i] + self.t[m, i + 1]) / 2 for i in range(num_compet_classes)])
+        self.r = np.array([(self.t[i] + self.t[i + 1]) / 2 for i in range(num_compet_classes)])
 
         file_name = "burnout_to_kpi.csv"
         with open(file_name) as fp:
             reader = csv.reader(fp, delimiter=";")
             next(reader, None)  # пропустить заголовки
             data_str = [row for row in reader]
-        assert(len(data_str) == num_kpi_indicators)
-        for m, row in enumerate(data_str):
-            row = row[1:]
-            assert(len(row) == num_burnout_indicators + 1)
-            self.burnout_intercept[m] = float(row[0])
-            self.burnout_coef[m, :] = np.array(list(map(float, row[1:])))
+        assert(len(data_str) == 1)
+        row = data_str[0][1:]
+        assert(len(row) == 2)
+        self.burnout_intercept = float(row[0])
+        self.burnout_coef = float(row[1])
 
         file_name = "kpi_importance.csv"
         with open(file_name) as fp:
@@ -331,25 +325,25 @@ class CompetBurnoutToKPI:
         self.kpi_importance = np.array(list(map(float, row)))
 
     # вычислить зависимость m-го KPI от компетенций для отдельного сотрудника
-    def calc_phi(self, m, x):
-        integral_compet = np.dot(x, self.w[m, :])
-        if integral_compet < self.r[m, 0]:
-            return self.c[m, 0]
-        elif integral_compet > self.r[m, num_compet_classes - 1]:
-            return self.c[m, num_compet_classes - 1]
+    def calc_phi(self, x):
+        integral_compet = np.dot(x, self.w)
+        if integral_compet < self.r[0]:
+            return self.c[0]
+        elif integral_compet > self.r[num_compet_classes - 1]:
+            return self.c[num_compet_classes - 1]
         else:
             # найдем ближайшую справа точку излома
             p = 0
-            while integral_compet > self.r[m, p]:
+            while integral_compet > self.r[p]:
                 p += 1
             # p - номер ближайшей справа точки излома
             # усредняем c[m, p - 1] и c[m, p]
-            lam = (integral_compet - self.r[m, p - 1]) / (self.r[m, p] - self.r[m, p - 1])
-            return self.c[m, p - 1] * (1 - lam) + self.c[m, p] * lam
+            lam = (integral_compet - self.r[p - 1]) / (self.r[p] - self.r[p - 1])
+            return self.c[p - 1] * (1 - lam) + self.c[p] * lam
 
     # вычислить m-й KPI, зная компетенции и выгорание отдельного сотрудника
     def calc_kpi(self, m, x, b):
-        return self.calc_phi(m, x) + self.burnout_intercept[m] + np.dot(self.burnout_coef[m, :], b)
+        return self.calc_phi(x) + self.burnout_intercept + self.burnout_coef * b
 
 
 class BudgetConstraints:
