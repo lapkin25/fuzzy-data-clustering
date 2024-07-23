@@ -187,6 +187,15 @@ def f(w):
 
 data_x, data_y = read_data("data0.csv", x_num, y_num)
 
+
+# раскомментировать для расчета с интегральным показателем выгорания
+"""
+y_num = 1
+data_y = np.mean(data_y, axis=1).reshape(-1, 1)
+print(data_y)
+"""
+
+
 # статистика x_k
 data_size = data_x.shape[0]
 print(data_size)
