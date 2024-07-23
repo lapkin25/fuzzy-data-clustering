@@ -7,6 +7,11 @@ from process1d import process1d
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 
+#def get_x(x):
+#    y = x if x > 0 else -x
+#    z = math.log(y + 1)
+#    return z if x > 0 else -z
+
 
 def read_data(file_name, x_num, y_num):
     # чтение входных данных
@@ -70,7 +75,7 @@ def predict_multinomial(x_data, y_data):
     print("Средняя разница:", np.mean(abs(y - y_data)))
 
 
-x_num = 58 #29
+x_num = 29
 y_num = 3
 
 def cost_functional (data_x, data_y):
@@ -180,7 +185,7 @@ def f(w):
     return J_tilde
 
 
-data_x, data_y = read_data("data.csv", x_num, y_num)
+data_x, data_y = read_data("data0.csv", x_num, y_num)
 
 # статистика x_k
 data_size = data_x.shape[0]
@@ -227,9 +232,40 @@ for y_ind in range(y_num):
 #    process1d(predicted_y, data_y[:, y_ind], 0, 100, y_classes_num, t)
     process1d(np.dot(data_x, reg.coef_) / np.linalg.norm(reg.coef_), data_y[:, y_ind], 0, 100, y_classes_num, (t - reg.intercept_) / np.linalg.norm(reg.coef_), reg.intercept_, np.linalg.norm(reg.coef_))
 
+    """
+    fin = open("compet.txt", "r")
+    compet = []
+    for i in range(data_size):
+        compet.append(float(fin.readline()))
+    fin.close()
+    print(compet)
+    """
+
+    """
+    fin = open("kpi.txt", "r")
+    kpi = []
+    for i in range(data_size):
+        kpi.append(float(fin.readline()))
+    fin.close()
+    print(kpi)
+    """
+
+#    plt.scatter(np.dot(data_x, reg.coef_) / np.linalg.norm(reg.coef_), (data_y[:, 0] + data_y[:, 1] + data_y[:, 2]) / 3, c=compet, cmap='Reds')
+    """
+    plt.scatter(np.dot(data_x, reg.coef_) / np.linalg.norm(reg.coef_), data_y[:, y_ind], c=compet, cmap='Reds')
+    plt.xlabel("Взвешенная сумма ожиданий")
+    plt.ylabel("Показатель выгорания")
+    plt.show()
+
+    plt.scatter(np.dot(data_x, reg.coef_) / np.linalg.norm(reg.coef_), data_y[:, y_ind], c=kpi, cmap='Reds')
+    plt.xlabel("Взвешенная сумма ожиданий")
+    plt.ylabel("Показатель выгорания")
+    plt.show()
+    """
+
     w0 = reg.coef_
     print("J~ = ", f(w0))
-#    res = minimize(f, w0, method='Nelder-Mead')
+    res = minimize(f, w0, method='Nelder-Mead')
     w_opt = res.x
     w_opt /= np.linalg.norm(w_opt)
     print("J~_opt = ", f(w_opt))
@@ -246,3 +282,18 @@ for y_ind in range(y_num):
     for i in range(y_classes_num):
         plt.plot([min(predicted_y_opt), max(predicted_y_opt)], [i * (y_max - y_min) / y_classes_num, i * (y_max - y_min) / y_classes_num], 'b')
     plt.show()
+
+    
+
+
+#    print(reg.coef_)
+    
+    #print(cost_functional(predicted_y, data_y[:, y_ind]))
+
+    # 1) process1d для линейной регрессии
+    # 2) process1d для мультиномиальной регрессии (не через сумму)
+    # 3) process1d через выбор оптимальных w_i
+
+   # ordinal_y = y_class_v(data_y[:, y_ind])
+   ##print(ordinal_y)
+   # predict_multinomial(data_x, ordinal_y)
