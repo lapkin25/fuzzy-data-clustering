@@ -6,7 +6,7 @@ from regression import points_partition
 
 
 # попеременный алгоритм нахождения оптимальных весов и оптимального разбиения точек на диапазоны
-def fuzzy_min_entropy(x, y, z, m, iter_num, w0, t0):
+def fuzzy_min_entropy(x, y, z, m, iter_num, w0, t0, simplified=False):
     n = x.shape[0]  # количество точек
     p = x.shape[1]  # количество признаков
     w = w0.copy()
@@ -19,7 +19,7 @@ def fuzzy_min_entropy(x, y, z, m, iter_num, w0, t0):
         iter_num = 100
         lam = 0.01
         #t = fuzzy_optimal_partition(integral_x, y, m, t, iter_num, lam)
-        t = fuzzy_entropy_optimal_partition(integral_x, y, z, m, t, iter_num, lam)
+        t = fuzzy_entropy_optimal_partition(integral_x, y, z, m, t, iter_num, lam, simplified=simplified)
         c = [calc_c_k(t, k, integral_x, y) for k in range(m)]
         print("t =", t)
 
@@ -29,7 +29,7 @@ def fuzzy_min_entropy(x, y, z, m, iter_num, w0, t0):
             #for i in range(n):
             #    integral_x[i] = np.dot(x[i, :], w)
             integral_x = np.dot(x, w)
-            J, mat = calc_reduced_correspondence_matrix_given_c(integral_x, y, z, t, c)
+            J, mat = calc_reduced_correspondence_matrix_given_c(integral_x, y, z, t, c, simplified=simplified)
             print(J)
             print(mat)
             return J

@@ -237,15 +237,15 @@ def fuzzy_optimal_partition(x, y, m, t0, iter_num, lam):
 
 from correspondence_matrix import calc_reduced_correspondence_matrix
 
-def calc_derivatives_J_entropy_t(t, x, y, z):
+def calc_derivatives_J_entropy_t(t, x, y, z, simplified=False):
     m = len(t) + 1  # количество диапазонов
     J_t = [0 for j in range(m - 1)]
     delta_t = 0.1
 
-    J0, _ = calc_reduced_correspondence_matrix(x, y, z, t)
+    J0, _ = calc_reduced_correspondence_matrix(x, y, z, t, simplified=simplified)
     for j in range(m - 1):
         t[j] += delta_t
-        J, _ = calc_reduced_correspondence_matrix(x, y, z, t)
+        J, _ = calc_reduced_correspondence_matrix(x, y, z, t, simplified=simplified)
         J_t[j] = (J - J0) / delta_t
         t[j] -= delta_t
 
@@ -256,14 +256,14 @@ def calc_derivatives_J_entropy_t(t, x, y, z):
 #   и параметр градиентного спуска lam
 # Возвращает список границ диапазонов:
 #   t[j] - граница между j-м и (j+1)-м диапазонами, j = 0..m-2
-def fuzzy_entropy_optimal_partition(x, y, z, m, t0, iter_num, lam):
+def fuzzy_entropy_optimal_partition(x, y, z, m, t0, iter_num, lam, simplified=False):
     t = t0.copy()
-    J_pred, _ = calc_reduced_correspondence_matrix(x, y, z, t)
+    J_pred, _ = calc_reduced_correspondence_matrix(x, y, z, t, simplified=simplified)
     t_pred = t.copy()
     cnt = 0
     for it in range(iter_num):
         # TODO: прокомментировать алгоритм
-        J_t = calc_derivatives_J_entropy_t(t, x, y, z)
+        J_t = calc_derivatives_J_entropy_t(t, x, y, z, simplified=simplified)
 
         #J_t_check = calc_derivatives_J_t_check(t, x, y)
         #print("J_t =", J_t)
@@ -278,7 +278,7 @@ def fuzzy_entropy_optimal_partition(x, y, z, m, t0, iter_num, lam):
             t_j_new = (t[j] + t[j + 1]) / 2
         t[j] = t_j_new
 
-        J, _ = calc_reduced_correspondence_matrix(x, y, z, t)
+        J, _ = calc_reduced_correspondence_matrix(x, y, z, t, simplified=simplified)
         if J < J_pred:
             cnt += 1
             if cnt == 5:

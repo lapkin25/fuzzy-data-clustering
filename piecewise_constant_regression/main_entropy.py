@@ -54,15 +54,25 @@ for t in range(t_num):
     kpi[t] = read_data(kpi_files[t], data_size, kpi_num)
 
 
-KPI_ind = 0  # интересующий показатель KPI
+KPI_importance = np.array([0.3, 0.2, 0.4, 0.1])
+
+#KPI_ind = 0  # интересующий показатель KPI
 # берем для каждого сотрудника его компетенции в последний момент времени
 data_x = np.array(compet[t_num - 1])
 # берем для каждого сотрудника среднее KPI за все моменты времени
-data_y = np.array([np.mean([kpi[t][i][KPI_ind] for t in range(t_num)]) for i in range(data_size)])
+#data_y = np.array([np.mean([kpi[t][i][KPI_ind] for t in range(t_num)]) for i in range(data_size)])
+
+# вычисляем интегральный KPI (в момент времени t = 0)
+data_y = np.dot(kpi[0], KPI_importance)
+print(data_y)
+
 # вычисляем средний показатель выгорания, также усредненный по времени
 #data_z_mean = np.array([np.mean([(burnout[t][i][0] + burnout[t][i][1] + burnout[t][i][2]) / 3\
 #                            for t in range(t_num)]) for i in range(data_size)])
-data_z = np.array([[np.mean([burnout[t][i][j] for t in range(t_num)]) for j in range(burnout_num)] for i in range(data_size)])
+#data_z = np.array([[np.mean([burnout[t][i, j] for t in range(t_num)]) for j in range(burnout_num)] for i in range(data_size)])
+
+# вычисляем интегральный показатель выгорания (в момент времени t = 0)
+data_z = np.mean(burnout[0], axis=1)
 
 
 reg = LinearRegression().fit(data_x, data_y)
@@ -78,7 +88,7 @@ integral_x = np.dot(data_x, np.transpose(w0))  # интегральный пок
 t0 = points_partition(integral_x, data_y, x_ranges_num)
 
 #J, mat = calc_correspondence_matrix(integral_x, data_y, t0)
-J, mat = calc_reduced_correspondence_matrix(integral_x, data_y, data_z, t0)
+J, mat = calc_reduced_correspondence_matrix(integral_x, data_y, data_z, t0, simplified=True)
 np.set_printoptions(precision=5, suppress=True)
 print(mat)
 print("J =", J)
@@ -92,6 +102,7 @@ print(mat)
 print("J =", J)
 """
 
+"""
 # 5 классов
 w0 = [ 2.42568, -0.01622, -1.55724, 0.61469,  0.49749,  2.28665,  0.77113,  0.93025,
   0.29054,  2.80141,  0.46901,  1.49558,  0.28327,  1.05572, -0.09754,  0.1322,
@@ -99,12 +110,15 @@ w0 = [ 2.42568, -0.01622, -1.55724, 0.61469,  0.49749,  2.28665,  0.77113,  0.93
   1.60866,  0.14488,  2.42032, -1.27706, 12.00537,  4.66233,  0.00421,  0.86921,
  -3.50815, -4.93438,  2.92068, -1.73377, -0.29395,  2.7637 ]
 t0 = [53.84339218405032, 60.33215681343996, 74.15304632000989, 91.09094471075109]
+"""
 
-w, t, c = fuzzy_min_entropy(data_x, data_y, data_z, x_ranges_num, 1, w0, t0)
+#w, t, c = fuzzy_min_entropy(data_x, data_y, data_z, x_ranges_num, 1, w0, t0)
+w, t, c = fuzzy_min_entropy(data_x, data_y, data_z, x_ranges_num, 20, w0, t0, simplified=True)
 #w, t, c = fuzzy_min_entropy(data_x, data_y, data_z, x_ranges_num, 20, w0, t0)
 #w, t = fuzzy_min_entropy_t_crisp(data_x, data_y, data_z, x_ranges_num, w0)
 integral_x = np.dot(data_x, np.transpose(w))  # интегральный показатель компетентности
-J, mat = calc_reduced_correspondence_matrix(integral_x, data_y, data_z, t, verbose=True)
+#J, mat = calc_reduced_correspondence_matrix(integral_x, data_y, data_z, t, verbose=True)
+J, mat = calc_reduced_correspondence_matrix(integral_x, data_y, data_z, t, verbose=True, simplified=True)
 print(mat)
 print("J =", J)
 print("w =", list(w))
@@ -112,7 +126,8 @@ print("t =", list(t))
 print("c =", c)
 uu = compute_u(t, integral_x)
 #fuzzy_plot_points_partition(integral_x, data_y, t, uu)
-fuzzy_plot_points_partition_coloured(integral_x, data_y, t, uu, np.mean(data_z, axis=1))
+#fuzzy_plot_points_partition_coloured(integral_x, data_y, t, uu, np.mean(data_z, axis=1))
+fuzzy_plot_points_partition_coloured(integral_x, data_y, t, uu, data_z)
 
 # находим условные вероятности, что точка имеет определенный KPI, при условии
 #   отнесения к определенной категории компетентности

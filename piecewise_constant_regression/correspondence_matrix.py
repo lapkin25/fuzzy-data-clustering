@@ -2,6 +2,7 @@ import math
 import numpy as np
 from optimal_partition import calc_c_k, calc_u_k_given_a, calc_u_k
 import statsmodels.api as sm
+from sklearn.linear_model import LinearRegression
 
 
 def calc_correspondence_matrix(x, y, t):
@@ -55,7 +56,21 @@ def calc_weighted_regression(x, y, u):
     return params[1:], params[0]
 
 
-def calc_reduced_correspondence_matrix_given_c(x, y, z, t, c, verbose=False, return_s = False):
+# Вычисляет регрессионные коэффициенты при выгорании
+def calc_regression(x, y, z, t, c, u):
+    data_size = len(y)  # число точек
+    # вычисляем зависимость от выгорания (общую для всех интервалов компетентности)
+    diff_y = np.zeros(data_size)
+    for i in range(data_size):
+        diff_y[i] = y[i] - np.dot(u[i, :], c)
+
+    reg = LinearRegression().fit(z.reshape(-1, 1), diff_y.reshape(-1, 1))
+    w = reg.coef_
+    w0 = reg.intercept_
+    return w, w0
+
+
+def calc_reduced_correspondence_matrix_given_c(x, y, z, t, c, verbose=False, return_s = False, simplified=False):
     data_size = len(y)  # число точек
     m = len(t) + 1  # число интервалов
     # c = [calc_c_k(t, k, x, y) for k in range(m)]
@@ -72,12 +87,19 @@ def calc_reduced_correspondence_matrix_given_c(x, y, z, t, c, verbose=False, ret
     min_yr = None
     max_yr = None
     for k in range(m):
-        w, w0 = calc_weighted_regression(z, y, u[:, k])
+        if simplified:
+            w, w0 = calc_regression(x, y, z, t, c, u)
+        else:
+            w, w0 = calc_weighted_regression(z, y, u[:, k])
         if verbose:
             print("k =", k)
             print("w =", w)
             print("w0 =", w0)
-        yr = y - (np.dot(z, w) + w0) + c[k]  # приведенный KPI
+        if simplified:
+            yr = y - (w * z + w0)  # прибавлять c[k] не нужно
+            yr = yr.ravel()
+        else:
+            yr = y - (np.dot(z, w) + w0) + c[k]  # приведенный KPI
         if min_yr is None or np.min(yr) < min_yr:
             min_yr = np.min(yr)
         if max_yr is None or np.max(yr) > max_yr:
@@ -106,7 +128,7 @@ def calc_reduced_correspondence_matrix_given_c(x, y, z, t, c, verbose=False, ret
         return J, mat
 
 
-def calc_reduced_correspondence_matrix(x, y, z, t, verbose=False, return_s = False):
+def calc_reduced_correspondence_matrix(x, y, z, t, verbose=False, return_s = False, simplified=False):
     m = len(t) + 1  # число интервалов
     c = [calc_c_k(t, k, x, y) for k in range(m)]
-    return calc_reduced_correspondence_matrix_given_c(x, y, z, t, c, verbose, return_s)
+    return calc_reduced_correspondence_matrix_given_c(x, y, z, t, c, verbose, return_s, simplified)
