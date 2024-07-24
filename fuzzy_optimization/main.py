@@ -32,7 +32,7 @@ total_budget = 500000 / 4 * selected_data_size
 
 #budget1 = total_budget / 2
 
-compet_growth_year = 10
+compet_growth_year = 20  #10
 
 
 """

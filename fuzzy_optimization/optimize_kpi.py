@@ -127,14 +127,14 @@ def optimize_full(x, q, a, invest_to_compet, activities_expectations, expectatio
     param_lin_constr_rhs_l = np.zeros(data_size)
 
     all_constr = np.vstack(param_single_constr)
-    #all_constr = np.vstack([all_constr, param_group_constr, param_lin_constr, [param_sum_constr]])
-    all_constr = np.vstack([all_constr, param_group_constr, [param_sum_constr]])
+    all_constr = np.vstack([all_constr, param_group_constr, param_lin_constr, [param_sum_constr]])
+    #all_constr = np.vstack([all_constr, param_group_constr, [param_sum_constr]])
     all_constr_rhs_u = np.hstack(param_single_constr_rhs_u)
-    #all_constr_rhs_u = np.hstack([all_constr_rhs_u, param_group_constr_rhs_u, param_lin_constr_rhs_u, [param_sum_constr_rhs_u]])
-    all_constr_rhs_u = np.hstack([all_constr_rhs_u, param_group_constr_rhs_u, [param_sum_constr_rhs_u]])
+    all_constr_rhs_u = np.hstack([all_constr_rhs_u, param_group_constr_rhs_u, param_lin_constr_rhs_u, [param_sum_constr_rhs_u]])
+    #all_constr_rhs_u = np.hstack([all_constr_rhs_u, param_group_constr_rhs_u, [param_sum_constr_rhs_u]])
     all_constr_rhs_l = np.hstack(param_single_constr_rhs_l)
-    #all_constr_rhs_l = np.hstack([all_constr_rhs_l, param_group_constr_rhs_l, param_lin_constr_rhs_l, [param_sum_constr_rhs_l]])
-    all_constr_rhs_l = np.hstack([all_constr_rhs_l, param_group_constr_rhs_l, [param_sum_constr_rhs_l]])
+    all_constr_rhs_l = np.hstack([all_constr_rhs_l, param_group_constr_rhs_l, param_lin_constr_rhs_l, [param_sum_constr_rhs_l]])
+    #all_constr_rhs_l = np.hstack([all_constr_rhs_l, param_group_constr_rhs_l, [param_sum_constr_rhs_l]])
 
     constraints = optimize.LinearConstraint(A=all_constr, lb=all_constr_rhs_l, ub=all_constr_rhs_u)
 
@@ -203,7 +203,8 @@ def optimize_full(x, q, a, invest_to_compet, activities_expectations, expectatio
 
     integrality = np.full_like(obj_coef, True)
 
-    res = milp(c=-obj_coef, constraints=constraints, integrality=integrality, bounds=bounds, options = {"disp": True})
+    res = milp(c=-obj_coef, constraints=constraints, integrality=integrality, bounds=bounds,
+               options = {"disp": True, "mip_rel_gap": 0.03})
     #print(res.x)
     for k in range(num_activities):
         for i in range(data_size):
