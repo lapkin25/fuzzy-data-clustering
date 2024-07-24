@@ -391,5 +391,4 @@ class Activities:
                 rounded_activity_cost = 1000
             self.activities_lists[group_index].append(
                 {"name": activity_name, "cost": rounded_activity_cost})
-
         assert(group_index == num_activities - 1)

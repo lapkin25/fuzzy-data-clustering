@@ -96,8 +96,30 @@ def optimize1(x, q, a, invest_to_compet, activities_expectations, expectations_t
 
 def optimize2(x, q, a, invest_to_compet, activities_expectations, expectations_to_burnout, compet_burnout_to_kpi,
               budget_constraints, total_budget, budget2, activities, budget1_distr):
-    for k in range(29):
-        print(activities.activities_lists[k])
+    num_activities = q.shape[1]
+
+    # Найдем, сколько денег можно потратить на каждое направление мероприятий
+    cost_spent = [np.array([], dtype=int) for _ in range(num_activities)]
+    # cost_spent - список возможных сумм, которые можно потратить на каждое направление мероприятий
+    for k in range(num_activities):
+        sum_cost = sum([s['cost'] // 1000 for s in activities.activities_lists[k]])
+        can_spend = np.zeros(sum_cost + 1, dtype=bool)
+        can_spend[0] = True
+        for s in activities.activities_lists[k]:
+            pred_can_spend = can_spend.copy()
+            for c in range(0, sum_cost + 1):
+                # c - сколько потратили на просмотренные мероприятия (тыс. руб.)
+                if pred_can_spend[c]:
+                    cost = s['cost'] // 1000
+                    # cost - сколько стоит очередное мероприятие (тыс. руб.)
+                    can_spend[c + cost] = True
+        for c in range(1, sum_cost + 1):
+            if can_spend[c]:
+                cost_spent[k] = np.append(cost_spent[k], c)
+
+    for k in range(num_activities):
+        print(cost_spent[k])
+
 
 
 # Расчет KPI в текущий момент времени для всех сотрудников
