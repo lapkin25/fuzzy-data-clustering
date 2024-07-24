@@ -32,12 +32,17 @@ total_budget = 500000 / 4 * selected_data_size
 
 budget1 = total_budget / 2
 
+compet_growth_year = 10
+
 # здесь потом будет вызов общей функции optimize с тем же интерфейсом, что и раньше
 #   с последующим расчетом KPI
 z = optimize1(compet_t0.x[selected, :], expectations.q[selected, :], expectations.a[selected, :],
               invest_to_compet, activities_expectations, expectations_to_burnout, compet_burnout_to_kpi,
-              budget_constraints, total_budget, budget1)
+              budget_constraints, total_budget, budget1, compet_growth_year / 4)
 
+print(budget1)
+print(np.sum(z))
+print(np.sum(z, axis=0))
 
 def plot_expectations_to_burnout():
     integral_expectations = np.dot(expectations.q * expectations.a, expectations_to_burnout.w)

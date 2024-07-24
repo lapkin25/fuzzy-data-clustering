@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.optimize import linprog
 
 
 # Вход:
@@ -8,7 +9,7 @@ import numpy as np
 # Выход:
 #   z - массив I x K - инвестиции в сотрудников по направлениям
 def optimize1(x, q, a, invest_to_compet, activities_expectations, expectations_to_burnout, compet_burnout_to_kpi,
-              budget_constraints, total_budget, budget1):
+              budget_constraints, total_budget, budget1, compet_growth):
     data_size = x.shape[0]
     num_compet = x.shape[1]
     num_activities = q.shape[1]
@@ -47,9 +48,48 @@ def optimize1(x, q, a, invest_to_compet, activities_expectations, expectations_t
                   / (compet_burnout_to_kpi.t[p] - compet_burnout_to_kpi.t[p - 1])
             delta[i] = (1 - lam) * range_slopes[p - 1] + lam * range_slopes[p]
 
-    # print(delta)
+    # Решаем задачу линейного программирования
 
+    # коэффициенты при переменных в целевой функции
+    obj_coef = np.zeros((data_size, num_activities))
+    for i in range(data_size):
+        for k in range(num_activities):
+            obj_coef[i, k] = delta[i] * np.dot(invest_to_compet.alpha[:, k], compet_burnout_to_kpi.w)
+    param_obj = obj_coef.flatten()
 
+    # коэффициенты при переменных в линейных ограничениях
+    param_lin_constr = np.zeros((data_size, data_size * num_activities))
+    for i in range(data_size):
+        lin_constr_coef = np.zeros((data_size, num_activities))
+        for k in range(num_activities):
+            lin_constr_coef[i, k] = np.dot(invest_to_compet.alpha[:, k], compet_burnout_to_kpi.w)
+        param_lin_constr[i, :] = lin_constr_coef.flatten()
+    # правая часть линейного ограничения
+    param_lin_constr_rhs = np.ones(data_size) * compet_growth
+
+    # коэффициенты при переменных в ограничениях на инвестиции в отдельные направления
+    param_simple_constr = np.zeros((num_activities, data_size * num_activities))
+    for k in range(num_activities):
+        simple_constr_coef = np.zeros((data_size, num_activities))
+        simple_constr_coef[:, k] = np.ones(data_size)
+        param_simple_constr[k, :] = simple_constr_coef.flatten()
+    # правая часть ограничения
+    param_simple_constr_rhs = np.zeros(num_activities)
+    for k in range(num_activities):
+        param_simple_constr_rhs[k] = budget_activities[k]
+
+    # коэффициенты при переменных в суммарном ограничении
+    param_sum_constr = np.ones(data_size * num_activities)
+    # правая часть ограничения
+    param_sum_constr_rhs = budget1
+
+    A_ub = np.vstack([param_lin_constr, param_simple_constr, [param_sum_constr]])
+    b_ub = np.hstack([param_lin_constr_rhs, param_simple_constr_rhs, [param_sum_constr_rhs]])
+
+    res = linprog(-param_obj, A_ub=A_ub, b_ub=b_ub)
+    #print(res.x)
+    z = res.x.reshape((data_size, num_activities))
+    print(res.message)
 
     #print(budget_activities)
 
@@ -58,7 +98,6 @@ def optimize1(x, q, a, invest_to_compet, activities_expectations, expectations_t
 #    for i in range(data_size):
 #        for j in range(num_compet):
 #            x_new[i, j] = invest_to_compet.beta[j] * x[i, j]
-
 
     return z
 
