@@ -111,10 +111,20 @@ def optimize_full(x, q, a, invest_to_compet, activities_expectations, expectatio
                 param_sum_constr[var_index] = cost * 1000
     param_sum_constr_rhs = total_budget
 
+    # коэффициенты при переменных в линейных ограничениях
+    param_lin_constr = np.zeros((data_size, num_vars))
+    for i in range(data_size):
+        for k in range(num_activities):
+            for j, cost in enumerate(cost_spent[k]):
+                var_index = get_var_index(cost_spent, i, k, j, num_vars_person, data_size)
+                param_lin_constr[i, var_index] = np.dot(invest_to_compet.alpha[:, k], compet_burnout_to_kpi.w)\
+                                                 * cost * 1000
+    param_lin_constr_rhs = np.ones(data_size) * compet_growth
+
     all_constr = np.vstack(param_single_constr)
-    all_constr = np.vstack([all_constr, param_group_constr, [param_sum_constr]])
+    all_constr = np.vstack([all_constr, param_group_constr, param_lin_constr, [param_sum_constr]])
     all_constr_rhs = np.hstack(param_single_constr_rhs)
-    all_constr_rhs = np.hstack([all_constr_rhs, param_group_constr_rhs, [param_sum_constr_rhs]])
+    all_constr_rhs = np.hstack([all_constr_rhs, param_group_constr_rhs, param_lin_constr_rhs, [param_sum_constr_rhs]])
 
     constraints = optimize.LinearConstraint(A=all_constr, lb=np.zeros_like(all_constr_rhs), ub=all_constr_rhs)
 
