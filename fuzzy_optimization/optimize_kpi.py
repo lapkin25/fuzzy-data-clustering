@@ -2,6 +2,12 @@ import numpy as np
 from scipy.optimize import linprog
 
 
+def optimize_full(x, q, a, invest_to_compet, activities_expectations, expectations_to_burnout, compet_burnout_to_kpi,
+              budget_constraints, total_budget, activities, compet_growth):
+    # TODO: Свести задачу к задаче целочисленного линейного программирования
+    # Не забыть про единицы измерения (тыс. руб.)
+    pass
+
 # Вход:
 #   x - массив I x J - компетенции сотрудников в момент времени t
 #   q - массив I x K - отклонения в ожиданиях сотрудников от мероприятий в момент времени t
@@ -146,7 +152,8 @@ def optimize2(x, q, a, invest_to_compet, activities_expectations, expectations_t
             lam = (integral_expectations[i] - expectations_to_burnout.t[p - 1])\
                   / (expectations_to_burnout.t[p] - expectations_to_burnout.t[p - 1])
             delta[i] = (1 - lam) * range_slopes[p - 1] + lam * range_slopes[p]
-    
+
+    # TODO: метод динамического программирования
 
 
 

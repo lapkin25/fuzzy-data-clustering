@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from input_data import *
-from optimize_kpi import optimize1, optimize2, calc_kpi
+from optimize_kpi import optimize_full, calc_kpi
 
 
 # исходные данные
@@ -30,13 +30,12 @@ print("Индексы выбранных сотрудников: ", selected)
 # бюджет: 500000 в год на человека
 total_budget = 500000 / 4 * selected_data_size
 
-budget1 = total_budget / 2
+#budget1 = total_budget / 2
 
 compet_growth_year = 10
 
-# здесь потом будет вызов общей функции optimize с тем же интерфейсом, что и раньше
-#   с последующим расчетом KPI
 
+"""
 # Первый этап оптимизации: целевая функция - компетенции
 z1 = optimize1(compet_t0.x[selected, :], expectations.q[selected, :], expectations.a[selected, :],
               invest_to_compet, activities_expectations, expectations_to_burnout, compet_burnout_to_kpi,
@@ -60,6 +59,11 @@ budget2 = total_budget - budget1_spent
 _ = optimize2(compet_t0.x[selected, :], expectations.q[selected, :], expectations.a[selected, :],
               invest_to_compet, activities_expectations, expectations_to_burnout, compet_burnout_to_kpi,
               budget_constraints, total_budget, budget2, activities, budget1_distr)
+"""
+
+z, x_new, q_new = optimize_full(compet_t0.x[selected, :], expectations.q[selected, :], expectations.a[selected, :],
+                                invest_to_compet, activities_expectations, expectations_to_burnout, compet_burnout_to_kpi,
+                                budget_constraints, total_budget, activities, compet_growth_year / 4)
 
 
 
