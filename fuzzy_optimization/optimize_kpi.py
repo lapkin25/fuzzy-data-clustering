@@ -34,6 +34,12 @@ def optimize_full(x, q, a, invest_to_compet, activities_expectations, expectatio
     data_size = x.shape[0]
     num_activities = q.shape[1]
 
+    # количество инвестиций (единицы измерения - рубли) в каждого сотрудника по каждому из направлений
+    z = np.zeros((data_size, num_activities), dtype=int)
+
+    # ограничения на инвестиции в каждое направление
+    budget_activities = budget_constraints.budget_activities_percent / 100 * total_budget
+
     # Найдем, сколько денег можно потратить на каждое направление мероприятий
     cost_spent = [np.array([0], dtype=int) for _ in range(num_activities)]
     # cost_spent - список возможных сумм, которые можно потратить на каждое направление мероприятий
@@ -83,9 +89,31 @@ def optimize_full(x, q, a, invest_to_compet, activities_expectations, expectatio
             param_single_constr_rhs[i][k] = 1
 
     # следующая группа ограничений: сумма вложений в людей в рамках определенного мероприятия
-    
+    param_group_constr = np.zeros((num_activities, num_vars))
+    param_group_constr_rhs = np.zeros(num_activities)
+    for k in range(num_activities):
+        for i in range(data_size):
+            for j, cost in enumerate(cost_spent[k]):
+                var_index = get_var_index(cost_spent, i, k, j, num_vars_person, data_size)
+                param_group_constr[k, var_index] = cost * 1000
+    for k in range(num_activities):
+        param_group_constr_rhs[k] = budget_activities[k]
+
+    # суммарное ограничение
+    param_sum_constr = np.zeros(num_vars)
+    for k in range(num_activities):
+        for i in range(data_size):
+            for j, cost in enumerate(cost_spent[k]):
+                var_index = get_var_index(cost_spent, i, k, j, num_vars_person, data_size)
+                param_sum_constr[var_index] = cost * 1000
+    param_sum_constr_rhs = total_budget
+
 
     #constraints = optimize.LinearConstraint(A=, lb=0, ub=)
+    # установить lb, как в примере:
+    #A = np.array([[-1, 1], [3, 2], [2, 3]])
+    #b_u = np.array([1, 12, 12])
+    #b_l = np.full_like(b_u, -np.inf, dtype=float)
 
 
     #integrality = np.full_like(obj_coef, True)
