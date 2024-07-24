@@ -96,7 +96,9 @@ def optimize1(x, q, a, invest_to_compet, activities_expectations, expectations_t
 
 def optimize2(x, q, a, invest_to_compet, activities_expectations, expectations_to_burnout, compet_burnout_to_kpi,
               budget_constraints, total_budget, budget2, activities, budget1_distr):
+    data_size = x.shape[0]
     num_activities = q.shape[1]
+    num_expectation_classes = expectations_to_burnout.r.shape[0]
 
     # Найдем, сколько денег можно потратить на каждое направление мероприятий
     cost_spent = [np.array([], dtype=int) for _ in range(num_activities)]
@@ -119,6 +121,32 @@ def optimize2(x, q, a, invest_to_compet, activities_expectations, expectations_t
 
     for k in range(num_activities):
         print(cost_spent[k])
+
+    # коэффициент наклона зависимости выгорания от интегрального показателя ожиданий для каждого сотрудника
+    delta = np.zeros(data_size)
+    # сначала находим интегральный показатель ожиданий
+    integral_expectations = np.dot(q * a, expectations_to_burnout.w)
+    # затем вычисляем коэффициент наклона на границах диапазонов интегрального показателя компетентности
+    range_slopes = np.zeros(num_expectation_classes + 1)
+    for p in range(1, num_expectation_classes):
+        range_slopes[p] = (expectations_to_burnout.e[p] - expectations_to_burnout.e[p - 1]) \
+                          / ((expectations_to_burnout.t[p + 1] - expectations_to_burnout.t[p - 1]) / 2)
+    # теперь находим коэффициенты наклона, интерполируя range_slopes[p]
+    for i in range(data_size):
+        if integral_expectations[i] <= expectations_to_burnout.t[0]:
+            delta[i] = 0.0
+        elif integral_expectations[i] >= expectations_to_burnout.t[num_expectation_classes]:
+            delta[i] = 0.0
+        else:
+            p = 0
+            while expectations_to_burnout.t[p] < integral_expectations[i]:
+                p += 1
+            # p равно наименьшему индексу, такому, что t[p] >= integral_expectations[i]
+            # p >= 1
+            lam = (integral_expectations[i] - expectations_to_burnout.t[p - 1])\
+                  / (expectations_to_burnout.t[p] - expectations_to_burnout.t[p - 1])
+            delta[i] = (1 - lam) * range_slopes[p - 1] + lam * range_slopes[p]
+    
 
 
 
