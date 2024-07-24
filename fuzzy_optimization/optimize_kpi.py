@@ -175,7 +175,9 @@ def optimize_full(x, q, a, invest_to_compet, activities_expectations, expectatio
             for j, cost in enumerate(cost_spent[k]):
                 var_index = get_var_index(cost_spent, i, k, j, num_vars_person, data_size)
                 compet_coef = cost * 1000 * delta[i] * np.dot(invest_to_compet.alpha[:, k], compet_burnout_to_kpi.w)
-                expect_coef = 0.0  # заглушка
+                new_expect = activities_expectations.calc_expectations(k, cost * 1000, q[i, k])
+                expect_coef = a[i, k] * new_expect * expectations_to_burnout.w[k] * epsilon[i]\
+                              * compet_burnout_to_kpi.burnout_coef
                 obj_coef[var_index] = compet_coef + expect_coef
 
 
