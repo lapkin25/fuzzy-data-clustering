@@ -1,12 +1,72 @@
 import numpy as np
-from scipy.optimize import linprog
+from scipy import optimize
+from scipy.optimize import linprog, milp
+
+
+def get_var_index(cost_spent, k, cost_index):
+    return sum([len(cost_spent[j]) for j in range(k)]) + cost_index
+
+
+def get_var_params(cost_spent, var_index):
+    s = 0
+    k = 0
+    while var_index >= s + len(cost_spent[k]):
+        s += len(cost_spent[k])
+        k += 1
+    return k, var_index - s
 
 
 def optimize_full(x, q, a, invest_to_compet, activities_expectations, expectations_to_burnout, compet_burnout_to_kpi,
               budget_constraints, total_budget, activities, compet_growth):
     # TODO: Свести задачу к задаче целочисленного линейного программирования
     # Не забыть про единицы измерения (тыс. руб.)
-    pass
+
+    data_size = x.shape[0]
+    num_activities = q.shape[1]
+
+    # Найдем, сколько денег можно потратить на каждое направление мероприятий
+    cost_spent = [np.array([0], dtype=int) for _ in range(num_activities)]
+    # cost_spent - список возможных сумм, которые можно потратить на каждое направление мероприятий
+    for k in range(num_activities):
+        sum_cost = sum([s['cost'] // 1000 for s in activities.activities_lists[k]])
+        can_spend = np.zeros(sum_cost + 1, dtype=bool)
+        can_spend[0] = True
+        for s in activities.activities_lists[k]:
+            pred_can_spend = can_spend.copy()
+            for c in range(0, sum_cost + 1):
+                # c - сколько потратили на просмотренные мероприятия (тыс. руб.)
+                if pred_can_spend[c]:
+                    cost = s['cost'] // 1000
+                    # cost - сколько стоит очередное мероприятие (тыс. руб.)
+                    can_spend[c + cost] = True
+        for c in range(1, sum_cost + 1):
+            if can_spend[c]:
+                cost_spent[k] = np.append(cost_spent[k], c)
+
+    for k in range(num_activities):
+        print(cost_spent[k])
+
+    """
+    for k in range(num_activities):
+        for j, cost in enumerate(cost_spent[k]):
+            var_index = get_var_index(cost_spent, k, j)
+            k1, j1 = get_var_params(cost_spent, var_index)
+            print(k, j, k1, j1)
+    """
+
+    num_vars = sum([len(cost_spent[k]) for k in range(num_activities)])
+    #print(num_vars)
+    bounds = optimize.Bounds(0, 1)
+
+    constraints = optimize.LinearConstraint(A=, lb=0, ub=)
+
+
+    integrality = np.full_like(obj_coef, True)
+
+    res = milp(c=-obj_coef, constraints=constraints, integrality=integrality, bounds=bounds, options = {"disp": True})
+    print(res.x)
+
+
 
 # Вход:
 #   x - массив I x J - компетенции сотрудников в момент времени t
