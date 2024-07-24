@@ -33,6 +33,7 @@ def optimize_full(x, q, a, invest_to_compet, activities_expectations, expectatio
 
     data_size = x.shape[0]
     num_activities = q.shape[1]
+    num_compet = x.shape[1]
 
     # количество инвестиций (единицы измерения - рубли) в каждого сотрудника по каждому из направлений
     z = np.zeros((data_size, num_activities), dtype=int)
@@ -108,19 +109,38 @@ def optimize_full(x, q, a, invest_to_compet, activities_expectations, expectatio
                 param_sum_constr[var_index] = cost * 1000
     param_sum_constr_rhs = total_budget
 
+    all_constr = np.vstack(param_single_constr)
+    all_constr = np.vstack([all_constr, param_group_constr, [param_sum_constr]])
+    all_constr_rhs = np.hstack(param_single_constr_rhs)
+    all_constr_rhs = np.hstack([all_constr_rhs, param_group_constr_rhs, [param_sum_constr_rhs]])
 
-    #constraints = optimize.LinearConstraint(A=, lb=0, ub=)
-    # установить lb, как в примере:
-    #A = np.array([[-1, 1], [3, 2], [2, 3]])
-    #b_u = np.array([1, 12, 12])
-    #b_l = np.full_like(b_u, -np.inf, dtype=float)
+    constraints = optimize.LinearConstraint(A=all_constr, lb=np.zeros_like(all_constr_rhs), ub=all_constr_rhs)
 
+    obj_coef = np.ones(num_vars)  # заглушка
 
-    #integrality = np.full_like(obj_coef, True)
+    integrality = np.full_like(obj_coef, True)
 
-    #res = milp(c=-obj_coef, constraints=constraints, integrality=integrality, bounds=bounds, options = {"disp": True})
+    res = milp(c=-obj_coef, constraints=constraints, integrality=integrality, bounds=bounds, options = {"disp": True})
     #print(res.x)
+    for k in range(num_activities):
+        for i in range(data_size):
+            for j, cost in enumerate(cost_spent[k]):
+                var_index = get_var_index(cost_spent, i, k, j, num_vars_person, data_size)
+                z[i, k] += cost * 1000 * res.x[var_index]
 
+    x_new = np.zeros((data_size, num_compet))
+    for i in range(data_size):
+        for j in range(num_compet):
+            x_new[i, j] = invest_to_compet.beta[j] * x[i, j]
+            for k in range(num_activities):
+                x_new[i, j] += invest_to_compet.alpha[j, k] * z[i, k]
+
+    q_new = np.zeros((data_size, num_activities))
+    for i in range(data_size):
+        for k in range(num_activities):
+            q_new[i, k] = activities_expectations.calc_expectations(k, z[i, k], q[i, k])
+
+    return z, x_new, q_new
 
 
 # Вход:

@@ -65,6 +65,22 @@ z, x_new, q_new = optimize_full(compet_t0.x[selected, :], expectations.q[selecte
                                 invest_to_compet, activities_expectations, expectations_to_burnout, compet_burnout_to_kpi,
                                 budget_constraints, total_budget, activities, compet_growth_year / 4)
 
+budget_spent = np.sum(z)
+budget_distr = np.sum(z, axis=0)
+
+print("Выделено: ", total_budget)
+print("Потрачено: ", budget_spent)
+print("Структура инвестиций по направлениям: ", budget_distr)
+
+csvfile = open('result.csv', 'w', newline='')
+csvwriter = csv.writer(csvfile, delimiter=';')
+for i in range(z.shape[0]):
+    csvwriter.writerow([str(z[i, k]) for k in range(z.shape[1])])
+
+kpi1 = calc_kpi(x_new, q_new, expectations.a[selected, :], expectations_to_burnout, compet_burnout_to_kpi)
+print("Прогноз KPI: ", np.mean(kpi1))
+print("Реальные KPI при t = 0: ", np.mean(kpi_t0.y[selected, :], axis=0), " -> ",
+      np.dot(np.mean(kpi_t0.y[selected, :], axis=0), compet_burnout_to_kpi.kpi_importance))
 
 
 def plot_expectations_to_burnout():
