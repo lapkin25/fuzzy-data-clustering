@@ -34,6 +34,8 @@ def optimize_full(x, q, a, invest_to_compet, activities_expectations, expectatio
     data_size = x.shape[0]
     num_activities = q.shape[1]
     num_compet = x.shape[1]
+    num_compet_classes = compet_burnout_to_kpi.c.shape[0]
+    num_expectation_classes = expectations_to_burnout.r.shape[0]
 
     # количество инвестиций (единицы измерения - рубли) в каждого сотрудника по каждому из направлений
     z = np.zeros((data_size, num_activities), dtype=int)
@@ -116,7 +118,66 @@ def optimize_full(x, q, a, invest_to_compet, activities_expectations, expectatio
 
     constraints = optimize.LinearConstraint(A=all_constr, lb=np.zeros_like(all_constr_rhs), ub=all_constr_rhs)
 
-    obj_coef = np.ones(num_vars)  # заглушка
+    # коэффициент наклона зависимости KPI от интегрального показателя компетентности для каждого сотрудника
+    delta = np.zeros(data_size)
+    # Далее вычисляем delta[i] для всех i
+    # сначала находим интегральный показатель компетентности
+    integral_compet = np.dot(x, compet_burnout_to_kpi.w)
+    # затем вычисляем коэффициент наклона на границах диапазонов интегрального показателя компетентности
+    range_slopes = np.zeros(num_compet_classes + 1)
+    for p in range(1, num_compet_classes):
+        range_slopes[p] = (compet_burnout_to_kpi.c[p] - compet_burnout_to_kpi.c[p - 1]) \
+                          / ((compet_burnout_to_kpi.t[p + 1] - compet_burnout_to_kpi.t[p - 1]) / 2)
+    # теперь находим коэффициенты наклона, интерполируя range_slopes[p]
+    for i in range(data_size):
+        if integral_compet[i] <= compet_burnout_to_kpi.t[0]:
+            delta[i] = 0.0
+        elif integral_compet[i] >= compet_burnout_to_kpi.t[num_compet_classes]:
+            delta[i] = 0.0
+        else:
+            p = 0
+            while compet_burnout_to_kpi.t[p] < integral_compet[i]:
+                p += 1
+            # p равно наименьшему индексу, такому, что t[p] >= integral_compet[i]
+            # p >= 1
+            lam = (integral_compet[i] - compet_burnout_to_kpi.t[p - 1])\
+                  / (compet_burnout_to_kpi.t[p] - compet_burnout_to_kpi.t[p - 1])
+            delta[i] = (1 - lam) * range_slopes[p - 1] + lam * range_slopes[p]
+
+    # коэффициент наклона зависимости выгорания от интегрального показателя ожиданий для каждого сотрудника
+    epsilon = np.zeros(data_size)
+    # сначала находим интегральный показатель ожиданий
+    integral_expectations = np.dot(q * a, expectations_to_burnout.w)
+    # затем вычисляем коэффициент наклона на границах диапазонов интегрального показателя компетентности
+    range_slopes = np.zeros(num_expectation_classes + 1)
+    for p in range(1, num_expectation_classes):
+        range_slopes[p] = (expectations_to_burnout.e[p] - expectations_to_burnout.e[p - 1]) \
+                          / ((expectations_to_burnout.t[p + 1] - expectations_to_burnout.t[p - 1]) / 2)
+    # теперь находим коэффициенты наклона, интерполируя range_slopes[p]
+    for i in range(data_size):
+        if integral_expectations[i] <= expectations_to_burnout.t[0]:
+            epsilon[i] = 0.0
+        elif integral_expectations[i] >= expectations_to_burnout.t[num_expectation_classes]:
+            epsilon[i] = 0.0
+        else:
+            p = 0
+            while expectations_to_burnout.t[p] < integral_expectations[i]:
+                p += 1
+            # p равно наименьшему индексу, такому, что t[p] >= integral_expectations[i]
+            # p >= 1
+            lam = (integral_expectations[i] - expectations_to_burnout.t[p - 1])\
+                  / (expectations_to_burnout.t[p] - expectations_to_burnout.t[p - 1])
+            epsilon[i] = (1 - lam) * range_slopes[p - 1] + lam * range_slopes[p]
+
+    obj_coef = np.zeros(num_vars)
+    for k in range(num_activities):
+        for i in range(data_size):
+            for j, cost in enumerate(cost_spent[k]):
+                var_index = get_var_index(cost_spent, i, k, j, num_vars_person, data_size)
+                compet_coef = cost * 1000 * delta[i] * np.dot(invest_to_compet.alpha[:, k], compet_burnout_to_kpi.w)
+                expect_coef = 0.0  # заглушка
+                obj_coef[var_index] = compet_coef + expect_coef
+
 
     integrality = np.full_like(obj_coef, True)
 
