@@ -72,11 +72,18 @@ def optimize_full(x, q, a, invest_to_compet, activities_expectations, expectatio
 
     # коэффициенты при переменных в ограничениях
     # data_size * num_activities ограничений: для каждого человека и каждого мероприятия
+    # ограничение: среди всех коэффициентов для отдельного человека и отдельного мероприятия должна быть ровно одна 1
     param_single_constr = [np.zeros((num_activities, num_vars)) for _ in range(data_size)]
+    param_single_constr_rhs = [np.zeros(num_activities) for _ in range(data_size)]
     for i in range(data_size):
         for k in range(num_activities):
-            param_single_constr[i]
+            for j, cost in enumerate(cost_spent[k]):
+                var_index = get_var_index(cost_spent, i, k, j, num_vars_person, data_size)
+                param_single_constr[i][k, var_index] = 1
+            param_single_constr_rhs[i][k] = 1
 
+    # следующая группа ограничений: сумма вложений в людей в рамках определенного мероприятия
+    
 
     #constraints = optimize.LinearConstraint(A=, lb=0, ub=)
 
