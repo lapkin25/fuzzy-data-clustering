@@ -83,24 +83,27 @@ def optimize_full(x, q, a, invest_to_compet, activities_expectations, expectatio
     # data_size * num_activities ограничений: для каждого человека и каждого мероприятия
     # ограничение: среди всех коэффициентов для отдельного человека и отдельного мероприятия должна быть ровно одна 1
     param_single_constr = [np.zeros((num_activities, num_vars)) for _ in range(data_size)]
-    param_single_constr_rhs = [np.zeros(num_activities) for _ in range(data_size)]
+    param_single_constr_rhs_l = [np.zeros(num_activities) for _ in range(data_size)]
+    param_single_constr_rhs_u = [np.zeros(num_activities) for _ in range(data_size)]
     for i in range(data_size):
         for k in range(num_activities):
             for j, cost in enumerate(cost_spent[k]):
                 var_index = get_var_index(cost_spent, i, k, j, num_vars_person, data_size)
                 param_single_constr[i][k, var_index] = 1
-            param_single_constr_rhs[i][k] = 1
+            param_single_constr_rhs_l[i][k] = 1
+            param_single_constr_rhs_u[i][k] = 1
 
     # следующая группа ограничений: сумма вложений в людей в рамках определенного мероприятия
     param_group_constr = np.zeros((num_activities, num_vars))
-    param_group_constr_rhs = np.zeros(num_activities)
+    param_group_constr_rhs_u = np.zeros(num_activities)
+    param_group_constr_rhs_l = np.zeros(num_activities)
     for k in range(num_activities):
         for i in range(data_size):
             for j, cost in enumerate(cost_spent[k]):
                 var_index = get_var_index(cost_spent, i, k, j, num_vars_person, data_size)
                 param_group_constr[k, var_index] = cost * 1000
     for k in range(num_activities):
-        param_group_constr_rhs[k] = budget_activities[k]
+        param_group_constr_rhs_u[k] = budget_activities[k]
 
     # суммарное ограничение
     param_sum_constr = np.zeros(num_vars)
@@ -109,7 +112,8 @@ def optimize_full(x, q, a, invest_to_compet, activities_expectations, expectatio
             for j, cost in enumerate(cost_spent[k]):
                 var_index = get_var_index(cost_spent, i, k, j, num_vars_person, data_size)
                 param_sum_constr[var_index] = cost * 1000
-    param_sum_constr_rhs = total_budget
+    param_sum_constr_rhs_l = 0
+    param_sum_constr_rhs_u = total_budget
 
     # коэффициенты при переменных в линейных ограничениях
     param_lin_constr = np.zeros((data_size, num_vars))
@@ -119,14 +123,17 @@ def optimize_full(x, q, a, invest_to_compet, activities_expectations, expectatio
                 var_index = get_var_index(cost_spent, i, k, j, num_vars_person, data_size)
                 param_lin_constr[i, var_index] = np.dot(invest_to_compet.alpha[:, k], compet_burnout_to_kpi.w)\
                                                  * cost * 1000
-    param_lin_constr_rhs = np.ones(data_size) * compet_growth
+    param_lin_constr_rhs_u = np.ones(data_size) * compet_growth
+    param_lin_constr_rhs_l = np.zeros(data_size)
 
     all_constr = np.vstack(param_single_constr)
     all_constr = np.vstack([all_constr, param_group_constr, param_lin_constr, [param_sum_constr]])
-    all_constr_rhs = np.hstack(param_single_constr_rhs)
-    all_constr_rhs = np.hstack([all_constr_rhs, param_group_constr_rhs, param_lin_constr_rhs, [param_sum_constr_rhs]])
+    all_constr_rhs_u = np.hstack(param_single_constr_rhs_u)
+    all_constr_rhs_u = np.hstack([all_constr_rhs_u, param_group_constr_rhs_u, param_lin_constr_rhs_u, [param_sum_constr_rhs_u]])
+    all_constr_rhs_l = np.hstack(param_single_constr_rhs_l)
+    all_constr_rhs_l = np.hstack([all_constr_rhs_l, param_group_constr_rhs_l, param_lin_constr_rhs_l, [param_sum_constr_rhs_l]])
 
-    constraints = optimize.LinearConstraint(A=all_constr, lb=np.zeros_like(all_constr_rhs), ub=all_constr_rhs)
+    constraints = optimize.LinearConstraint(A=all_constr, lb=all_constr_rhs_l, ub=all_constr_rhs_u)
 
     # коэффициент наклона зависимости KPI от интегрального показателя компетентности для каждого сотрудника
     delta = np.zeros(data_size)
