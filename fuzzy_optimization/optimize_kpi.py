@@ -94,6 +94,12 @@ def optimize1(x, q, a, invest_to_compet, activities_expectations, expectations_t
     return z
 
 
+def optimize2(x, q, a, invest_to_compet, activities_expectations, expectations_to_burnout, compet_burnout_to_kpi,
+              budget_constraints, total_budget, budget2, activities, budget1_distr):
+    for k in range(29):
+        print(activities.activities_lists[k])
+
+
 # Расчет KPI в текущий момент времени для всех сотрудников
 # Вход:
 #   x - массив I x J - компетенции сотрудников в текущий момент времени

@@ -360,3 +360,36 @@ class BudgetConstraints:
         row = data_str[0]
         assert(len(row) == num_activities)
         self.budget_activities_percent = np.array(list(map(float, row)))
+
+
+class Activities:
+    def __init__(self, file_name):
+        self.activities_lists = [[] for _ in range(num_activities)]
+        self.read(file_name)
+
+    def read(self, file_name):
+        with open(file_name) as fp:
+            reader = csv.reader(fp, delimiter=";")
+            next(reader, None)  # пропустить заголовки
+            data_str = [row for row in reader]
+        group_index = -1
+        last_activity_group = ""
+        for row in data_str:
+            assert(len(row) == 5)
+            activity_group = row[0]
+            activity_name = row[1]
+            activity_cost = int(row[2].replace(" ", ""))
+            activity_num_people = int(row[3].replace(" ", ""))
+            activity_months = int(row[4])
+            if activity_group != last_activity_group:
+                group_index += 1
+                last_activity_group = activity_group
+            # стоимость за квартал
+            calculated_activity_cost = activity_cost / activity_num_people / activity_months * 3
+            rounded_activity_cost = int(calculated_activity_cost / 1000) * 1000
+            if rounded_activity_cost == 0:
+                rounded_activity_cost = 1000
+            self.activities_lists[group_index].append(
+                {"name": activity_name, "cost": rounded_activity_cost})
+
+        assert(group_index == num_activities - 1)

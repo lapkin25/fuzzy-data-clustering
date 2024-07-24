@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from input_data import *
-from optimize_kpi import optimize1, calc_kpi
+from optimize_kpi import optimize1, optimize2, calc_kpi
 
 
 # исходные данные
@@ -8,7 +8,7 @@ expectations = ExpectationsData("data_deviation_expectations.csv")
 compet_t0 = CompetData("data_compet_t0.csv")
 burnout_t0 = BurnoutData("data_burnout_t0.csv")
 kpi_t0 = KPIData("data_kpi_t0.csv")
-# TODO: исходные данные по выгоранию должны быть сразу агрегированными
+activities = Activities("data_activities.csv")
 
 # эконометрические зависимости
 invest_to_compet = InvestToCompet("invest_to_compet.csv")
@@ -41,10 +41,12 @@ compet_growth_year = 10
 z1 = optimize1(compet_t0.x[selected, :], expectations.q[selected, :], expectations.a[selected, :],
               invest_to_compet, activities_expectations, expectations_to_burnout, compet_burnout_to_kpi,
               budget_constraints, total_budget, budget1, compet_growth_year / 4)
+budget1_spent = np.sum(z1)
+budget1_distr = np.sum(z1, axis=0)
 
 print("Выделено: ", budget1)
-print("Потрачено: ", np.sum(z1))
-print("Структура инвестиций по направлениям: ", np.sum(z1, axis=0))
+print("Потрачено: ", budget1_spent)
+print("Структура инвестиций по направлениям: ", budget1_distr)
 
 csvfile = open('result1.csv', 'w', newline='')
 csvwriter = csv.writer(csvfile, delimiter=';')
@@ -53,6 +55,11 @@ for i in range(z1.shape[0]):
 
 # Второй этап оптимизации: целевая функция - выгорание
 
+budget2 = total_budget - budget1_spent
+
+_ = optimize2(compet_t0.x[selected, :], expectations.q[selected, :], expectations.a[selected, :],
+              invest_to_compet, activities_expectations, expectations_to_burnout, compet_burnout_to_kpi,
+              budget_constraints, total_budget, budget2, activities, budget1_distr)
 
 
 
