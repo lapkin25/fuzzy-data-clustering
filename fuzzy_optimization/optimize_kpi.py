@@ -3,17 +3,27 @@ from scipy import optimize
 from scipy.optimize import linprog, milp
 
 
-def get_var_index(cost_spent, k, cost_index):
+def get_person_var_index(cost_spent, k, cost_index):
     return sum([len(cost_spent[j]) for j in range(k)]) + cost_index
 
 
-def get_var_params(cost_spent, var_index):
+def get_person_var_params(cost_spent, var_index):
     s = 0
     k = 0
     while var_index >= s + len(cost_spent[k]):
         s += len(cost_spent[k])
         k += 1
     return k, var_index - s
+
+
+def get_var_index(cost_spent, i, k, cost_index, num_vars_person, data_size):
+    return i * num_vars_person + get_person_var_index(cost_spent, k, cost_index)
+
+
+def get_var_params(cost_spent, var_index, num_vars_person, data_size):
+    k, cost_index = get_person_var_params(cost_spent, var_index % num_vars_person)
+    i = var_index // num_vars_person
+    return i, k, cost_index
 
 
 def optimize_full(x, q, a, invest_to_compet, activities_expectations, expectations_to_burnout, compet_burnout_to_kpi,
@@ -46,25 +56,35 @@ def optimize_full(x, q, a, invest_to_compet, activities_expectations, expectatio
     for k in range(num_activities):
         print(cost_spent[k])
 
-    """
-    for k in range(num_activities):
-        for j, cost in enumerate(cost_spent[k]):
-            var_index = get_var_index(cost_spent, k, j)
-            k1, j1 = get_var_params(cost_spent, var_index)
-            print(k, j, k1, j1)
-    """
-
-    num_vars = sum([len(cost_spent[k]) for k in range(num_activities)])
-    #print(num_vars)
+    # количество переменных на одного человека
+    num_vars_person = sum([len(cost_spent[k]) for k in range(num_activities)])
+    num_vars = data_size * num_vars_person
     bounds = optimize.Bounds(0, 1)
 
-    constraints = optimize.LinearConstraint(A=, lb=0, ub=)
+    """
+    for i in range(data_size):
+        for k in range(num_activities):
+            for j, cost in enumerate(cost_spent[k]):
+                var_index = get_var_index(cost_spent, i, k, j, num_vars_person, data_size)
+                i1, k1, j1 = get_var_params(cost_spent, var_index, num_vars_person, data_size)
+                print(i, k, j, i1, k1, j1)
+    """
+
+    # коэффициенты при переменных в ограничениях
+    # data_size * num_activities ограничений: для каждого человека и каждого мероприятия
+    param_single_constr = [np.zeros((num_activities, num_vars)) for _ in range(data_size)]
+    for i in range(data_size):
+        for k in range(num_activities):
+            param_single_constr[i]
 
 
-    integrality = np.full_like(obj_coef, True)
+    #constraints = optimize.LinearConstraint(A=, lb=0, ub=)
 
-    res = milp(c=-obj_coef, constraints=constraints, integrality=integrality, bounds=bounds, options = {"disp": True})
-    print(res.x)
+
+    #integrality = np.full_like(obj_coef, True)
+
+    #res = milp(c=-obj_coef, constraints=constraints, integrality=integrality, bounds=bounds, options = {"disp": True})
+    #print(res.x)
 
 
 
