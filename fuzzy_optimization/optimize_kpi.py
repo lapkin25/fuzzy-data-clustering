@@ -91,14 +91,6 @@ def optimize1(x, q, a, invest_to_compet, activities_expectations, expectations_t
     z = res.x.reshape((data_size, num_activities))
     print(res.message)
 
-    #print(budget_activities)
-
-    #x_new = np.zeros((data_size, num_compet))
-    # инициализируем компетенции
-#    for i in range(data_size):
-#        for j in range(num_compet):
-#            x_new[i, j] = invest_to_compet.beta[j] * x[i, j]
-
     return z
 
 

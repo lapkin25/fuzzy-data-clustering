@@ -36,13 +36,25 @@ compet_growth_year = 10
 
 # здесь потом будет вызов общей функции optimize с тем же интерфейсом, что и раньше
 #   с последующим расчетом KPI
-z = optimize1(compet_t0.x[selected, :], expectations.q[selected, :], expectations.a[selected, :],
+
+# Первый этап оптимизации: целевая функция - компетенции
+z1 = optimize1(compet_t0.x[selected, :], expectations.q[selected, :], expectations.a[selected, :],
               invest_to_compet, activities_expectations, expectations_to_burnout, compet_burnout_to_kpi,
               budget_constraints, total_budget, budget1, compet_growth_year / 4)
 
-print(budget1)
-print(np.sum(z))
-print(np.sum(z, axis=0))
+print("Выделено: ", budget1)
+print("Потрачено: ", np.sum(z1))
+print("Структура инвестиций по направлениям: ", np.sum(z1, axis=0))
+
+csvfile = open('result1.csv', 'w', newline='')
+csvwriter = csv.writer(csvfile, delimiter=';')
+for i in range(z1.shape[0]):
+    csvwriter.writerow([str(z1[i, k]) for k in range(z1.shape[1])])
+
+# Второй этап оптимизации: целевая функция - выгорание
+
+
+
 
 def plot_expectations_to_burnout():
     integral_expectations = np.dot(expectations.q * expectations.a, expectations_to_burnout.w)
