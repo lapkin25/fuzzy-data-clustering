@@ -83,6 +83,58 @@ print("Реальные KPI при t = 0: ", np.mean(kpi_t0.y[selected, :], axis
       np.dot(np.mean(kpi_t0.y[selected, :], axis=0), compet_burnout_to_kpi.kpi_importance))
 
 
+plt.scatter(np.dot(compet_t0.x[selected, :], compet_burnout_to_kpi.w),
+            np.sum(z, axis=1), c=burnout_t0.b[selected], cmap='Reds')
+plt.xlabel("Интегральный показатель компетентности при t = 0")
+plt.ylabel("Инвестиции в сотрудника, руб.")
+plt.savefig('fig_1.png', dpi=300)
+plt.show()
+
+plt.scatter(burnout_t0.b[selected], np.sum(z, axis=1))
+plt.xlabel("Выгорание при t = 0")
+plt.ylabel("Инвестиции в сотрудника, руб.")
+plt.savefig('fig_2.png', dpi=300)
+plt.show()
+
+plt.scatter(np.dot(expectations.q[selected, :] * expectations.a[selected, :], expectations_to_burnout.w),
+            np.sum(z, axis=1), c=burnout_t0.b[selected], cmap='Reds')
+plt.xlabel("Интегральный показатель ожиданий при t = 0")
+plt.ylabel("Инвестиции в сотрудника, руб.")
+plt.savefig('fig_3.png', dpi=300)
+plt.show()
+
+
+# еще 3 квартала
+sum_z = z.copy()
+z_quarterly_empl = np.sum(z, axis=1)
+z_quarterly_activities = np.sum(z, axis=0)
+x_quarterly = [x_new]
+q_quarterly = [q_new]
+for quart in range(2, 5):
+    z, x_new, q_new = optimize_full(x_new, q_new, expectations.a[selected, :],
+                                    invest_to_compet, activities_expectations, expectations_to_burnout,
+                                    compet_burnout_to_kpi,
+                                    budget_constraints, total_budget, activities, compet_growth_year / 4)
+
+    sum_z += z
+    z_quarterly_empl = np.c_[z_quarterly_empl, np.sum(z, axis=1)]
+    z_quarterly_activities = np.c_[z_quarterly_activities, np.sum(z, axis=0)]
+    x_quarterly.append(x_new)
+    q_quarterly.append(q_new)
+    print("Квартал", quart)
+    print("Распределение по направлениям:", np.sum(z, axis=0))
+    kpi1 = calc_kpi(x_new, q_new, expectations.a[selected, :], expectations_to_burnout, compet_burnout_to_kpi)
+    print("Прогноз KPI: ", np.mean(kpi1))
+
+print("z_quarterly_empl =", z_quarterly_empl)
+print("z_quarterly_activities =", z_quarterly_activities)
+
+csvfile = open('result_year.csv', 'w', newline='')
+csvwriter = csv.writer(csvfile, delimiter=';')
+for i in range(sum_z.shape[0]):
+    csvwriter.writerow([str(sum_z[i, k]) for k in range(sum_z.shape[1])])
+
+
 def plot_expectations_to_burnout():
     integral_expectations = np.dot(expectations.q * expectations.a, expectations_to_burnout.w)
     min_x = np.min(integral_expectations)
