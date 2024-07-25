@@ -204,7 +204,7 @@ def optimize_full(x, q, a, invest_to_compet, activities_expectations, expectatio
     integrality = np.full_like(obj_coef, True)
 
     res = milp(c=-obj_coef, constraints=constraints, integrality=integrality, bounds=bounds,
-               options = {"disp": True, "mip_rel_gap": 0.03})
+               options = {"disp": True, "mip_rel_gap": 0.05})
     #print(res.x)
     for k in range(num_activities):
         for i in range(data_size):
