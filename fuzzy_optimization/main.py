@@ -84,26 +84,26 @@ print("Реальные KPI при t = 0: ", np.mean(kpi_t0.y[selected, :], axis
 
 
 plt.scatter(np.dot(compet_t0.x[selected, :], compet_burnout_to_kpi.w),
-            np.sum(z, axis=1), c=burnout_t0.b[selected], cmap='Reds')
+            np.sum(z, axis=1) / 1000, c=burnout_t0.b[selected], cmap='Reds')
 plt.xlabel("Интегральный показатель компетентности при t = 0")
-plt.ylabel("Инвестиции в сотрудника, руб.")
+plt.ylabel("Инвестиции в сотрудника, тыс. руб.")
 plt.savefig('fig_1.png', dpi=300)
 plt.show()
 
-plt.scatter(burnout_t0.b[selected], np.sum(z, axis=1))
+plt.scatter(burnout_t0.b[selected], np.sum(z, axis=1) / 1000)
 plt.xlabel("Выгорание при t = 0")
-plt.ylabel("Инвестиции в сотрудника, руб.")
+plt.ylabel("Инвестиции в сотрудника, тыс. руб.")
 plt.savefig('fig_2.png', dpi=300)
 plt.show()
 
 plt.scatter(np.dot(expectations.q[selected, :] * expectations.a[selected, :], expectations_to_burnout.w),
-            np.sum(z, axis=1), c=burnout_t0.b[selected], cmap='Reds')
+            np.sum(z, axis=1) / 1000, c=burnout_t0.b[selected], cmap='Reds')
 plt.xlabel("Интегральный показатель ожиданий при t = 0")
-plt.ylabel("Инвестиции в сотрудника, руб.")
+plt.ylabel("Инвестиции в сотрудника, тыс. руб.")
 plt.savefig('fig_3.png', dpi=300)
 plt.show()
 
-
+"""
 # еще 3 квартала
 sum_z = z.copy()
 z_quarterly_empl = np.sum(z, axis=1)
@@ -133,7 +133,7 @@ csvfile = open('result_year.csv', 'w', newline='')
 csvwriter = csv.writer(csvfile, delimiter=';')
 for i in range(sum_z.shape[0]):
     csvwriter.writerow([str(sum_z[i, k]) for k in range(sum_z.shape[1])])
-
+"""
 
 def plot_expectations_to_burnout():
     integral_expectations = np.dot(expectations.q * expectations.a, expectations_to_burnout.w)
@@ -156,6 +156,7 @@ def plot_expectations_to_burnout():
 
     plt.xlabel("Интегральный показатель ожиданий")
     plt.ylabel("Показатель выгорания")
+    plt.savefig('fig_A.png', dpi=300)
     plt.show()
 
 def plot_compet_to_kpi():
@@ -184,8 +185,9 @@ def plot_compet_to_kpi():
 
     plt.xlabel("Интегральный показатель компетентности")
     plt.ylabel("KPI")
+    plt.savefig('fig_B.png', dpi=300)
     plt.show()
 
 
-#plot_expectations_to_burnout()
-#plot_compet_to_kpi()
+plot_expectations_to_burnout()
+plot_compet_to_kpi()
