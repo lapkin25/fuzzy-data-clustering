@@ -88,20 +88,23 @@ plt.scatter(np.dot(compet_t0.x[selected, :], compet_burnout_to_kpi.w[0, :]) / np
             np.sum(z, axis=1), c=np.mean(burnout_t0.b[selected, :], axis=1), cmap='Reds')
 plt.xlabel("Интегральный показатель компетентности при t = 0")
 plt.ylabel("Инвестиции в сотрудника, млн руб.")
-plt.savefig('fig_1.png', dpi=300)
+#plt.savefig('fig_1.png', dpi=300)
+plt.savefig('fig_1.svg')
 plt.show()
 
 plt.scatter(np.mean(burnout_t0.b[selected, :], axis=1), np.sum(z, axis=1))
 plt.xlabel("Выгорание при t = 0")
 plt.ylabel("Инвестиции в сотрудника, млн руб.")
-plt.savefig('fig_2.png', dpi=300)
+#plt.savefig('fig_2.png', dpi=300)
+plt.savefig('fig_2.svg')
 plt.show()
 
 plt.scatter(np.dot(expectations.q[selected, :] * expectations.a[selected, :], expectations_to_burnout.w[0, :]),
             np.sum(z, axis=1), c=np.mean(burnout_t0.b[selected, :], axis=1), cmap='Reds')
 plt.xlabel("Интегральный показатель ожиданий при t = 0")
 plt.ylabel("Инвестиции в сотрудника, млн руб.")
-plt.savefig('fig_3.png', dpi=300)
+#plt.savefig('fig_3.png', dpi=300)
+plt.savefig('fig_3.svg')
 plt.show()
 
 kmeans = KMeans(n_clusters=3, random_state=123, max_iter=100)
