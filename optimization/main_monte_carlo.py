@@ -1,5 +1,3 @@
-import numpy as np
-
 from input_data import *
 from optimize_kpi import optimize, calc_kpi
 import random
@@ -87,6 +85,32 @@ def generate_random_kpi(delta, epsilon):
         for k in range(num_activities):
             perturbed_expectations_to_burnout.w[l, k] = perturb_coef(expectations_to_burnout.w[l, k], delta)
 
+    # Разыгрываем кусочно-линейную зависимость KPI от компетенций
+    for m in range(num_kpi_indicators):
+        for p in range(num_compet_classes):
+            perturbed_compet_burnout_to_kpi.c[m, p] = perturb_coef(compet_burnout_to_kpi.c[m, p], epsilon)
+        ok = False
+        while not ok:
+            for p in range(num_compet_classes):
+                perturbed_compet_burnout_to_kpi.r[m, p] = perturb_coef(compet_burnout_to_kpi.r[m, p], epsilon)
+            ok = True
+            for p in range(num_compet_classes - 1):
+                if perturbed_compet_burnout_to_kpi.r[m, p] > perturbed_compet_burnout_to_kpi.r[m, p + 1]:
+                    ok = False
+
+    # Разыгрываем кусочно-линейную зависимость выгорания от ожиданий
+    for l in range(num_burnout_indicators):
+        for p in range(num_expectation_classes):
+            perturbed_expectations_to_burnout.e[l, p] = perturb_coef(expectations_to_burnout.e[l, p], epsilon)
+        ok = False
+        while not ok:
+            for p in range(num_expectation_classes):
+                perturbed_expectations_to_burnout.r[l, p] = perturb_coef(expectations_to_burnout.r[l, p], epsilon)
+            ok = True
+            for p in range(num_expectation_classes - 1):
+                if perturbed_expectations_to_burnout.r[l, p] > perturbed_expectations_to_burnout.r[l, p + 1]:
+                    ok = False
+
     z, x_new, q_new = optimize(compet_t0.x[selected, :], expectations.q[selected, :], expectations.a[selected, :],
                                perturbed_invest_to_compet, activities_expectations, perturbed_expectations_to_burnout,
                                perturbed_compet_burnout_to_kpi, budget_constraints, total_budget)
@@ -101,12 +125,16 @@ def generate_random_kpi(delta, epsilon):
 # Найти среднеквадратичный разброс при параметрах delta, epsilon с num_samples случайных реализаций
 def calc_mean_std(num_samples, delta, epsilon, file):
     fout_kpi = open(file, 'w')
+    print("delta =", delta, ", epsilon =", epsilon, "\n", file=fout_kpi)
     kpi_sample = np.zeros(num_samples)
     for i in range(num_samples):
         kpi_sample[i] = generate_random_kpi(delta, epsilon)
         print(kpi_sample[i], file=fout_kpi)
     fout_kpi.close()
-    return np.mean(kpi_sample), np.std(kpi_sample)
+    mu = np.mean(kpi_sample)
+    sigma = np.std(kpi_sample)
+    print("\n", "mu =", mu, ", sigma =", sigma, file=fout_kpi)
+    return mu, sigma
 
 
 print("Реальные KPI при t = 0: ", np.mean(kpi_t0.y[selected, :], axis=0), " -> ",
@@ -115,9 +143,9 @@ print("Реальные KPI при t = 0: ", np.mean(kpi_t0.y[selected, :], axis
 invest_to_compet_left_conf = InvestToCompet("invest_to_compet_left_conf_interval.csv")
 invest_to_compet_right_conf = InvestToCompet("invest_to_compet_right_conf_interval.csv")
 
-num_samples = 3
+num_samples = 100
 delta = 0.05
-epsilon = 0.0
+epsilon = 0.03
 mu_kpi, sigma_kpi = calc_mean_std(num_samples, delta, epsilon, file='kpi_realizations.txt')
 print("mu = ", mu_kpi, " sigma = ", sigma_kpi)
 
