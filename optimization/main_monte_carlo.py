@@ -131,10 +131,10 @@ def calc_mean_std(num_samples, delta, epsilon, file):
         print("\n", "РЕАЛИЗАЦИЯ", i, "\n")
         kpi_sample[i] = generate_random_kpi(delta, epsilon)
         print(kpi_sample[i], file=fout_kpi)
+    print("\n", "mu =", mu, ", sigma =", sigma, file=fout_kpi)
     fout_kpi.close()
     mu = np.mean(kpi_sample)
     sigma = np.std(kpi_sample)
-    print("\n", "mu =", mu, ", sigma =", sigma, file=fout_kpi)
     return mu, sigma
 
 
