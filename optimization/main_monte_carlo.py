@@ -118,7 +118,7 @@ def generate_random_kpi(delta, epsilon):
                     perturbed_expectations_to_burnout, perturbed_compet_burnout_to_kpi)
     integral_kpi = np.dot(np.mean(kpi1, axis=0), compet_burnout_to_kpi.kpi_importance)
 
-    print("Распределение по направлениям:", np.sum(z, axis=0))
+    #print("Распределение по направлениям:", np.sum(z, axis=0))
 
     return integral_kpi
 
