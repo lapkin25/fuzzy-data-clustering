@@ -43,6 +43,12 @@ def trunc_normal_random(a, b):
     return x
 
 
+# Найти возмущенный коэффициент с относительным изменением delta
+def perturb_coef(coef, delta):
+    sigma = abs(coef) * delta
+    return trunc_normal_random(coef - sigma, coef + sigma)
+
+
 # Варьируем коэффициенты модели, разыгрывая их на доверительных интервалах
 # Находим случайную реализацию оптимального KPI
 # delta - относительное возмущение коэффициентов, epsilon - относительное возмущение ломаной
@@ -61,21 +67,45 @@ def generate_random_kpi(delta, epsilon):
             perturbed_invest_to_compet.alpha[j, k] =\
                 trunc_normal_random(invest_to_compet_left_conf.alpha[j, k], invest_to_compet_right_conf.alpha[j, k])
 
-    z, x_new, q_new = optimize(compet_t0.x[selected, :], expectations.q[selected, :], expectations.a[selected, :],
-                               perturbed_invest_to_compet, activities_expectations, expectations_to_burnout,
-                               compet_burnout_to_kpi, budget_constraints, total_budget)
+    # Разыгрываем коэффициенты зависимости KPI от компетенций
+    perturbed_compet_burnout_to_kpi = CompetBurnoutToKPI(compet_t0)
+    for m in range(num_kpi_indicators):
+        for j in range(num_compet):
+            perturbed_compet_burnout_to_kpi.w[m, j] = perturb_coef(compet_burnout_to_kpi.w[m, j], delta)
 
-    kpi1 = calc_kpi(x_new, q_new, expectations.a[selected, :], expectations_to_burnout, compet_burnout_to_kpi)
+    # Разыгрываем коэффициенты зависимости KPI от выгорания
+    for m in range(num_kpi_indicators):
+        perturbed_compet_burnout_to_kpi.burnout_intercept[m] =\
+            perturb_coef(compet_burnout_to_kpi.burnout_intercept[m], delta)
+        for l in range(num_burnout_indicators):
+            perturbed_compet_burnout_to_kpi.burnout_coef[m, l] =\
+                perturb_coef(compet_burnout_to_kpi.burnout_coef[m, l], delta)
+
+    # Разыгрываем коэффициенты зависимости выгорания от ожиданий
+    perturbed_expectations_to_burnout = ExpectationsToBurnout(expectations)
+    for l in range(num_burnout_indicators):
+        for k in range(num_activities):
+            perturbed_expectations_to_burnout.w[l, k] = perturb_coef(expectations_to_burnout.w[l, k], delta)
+
+    z, x_new, q_new = optimize(compet_t0.x[selected, :], expectations.q[selected, :], expectations.a[selected, :],
+                               perturbed_invest_to_compet, activities_expectations, perturbed_expectations_to_burnout,
+                               perturbed_compet_burnout_to_kpi, budget_constraints, total_budget)
+
+    kpi1 = calc_kpi(x_new, q_new, expectations.a[selected, :],
+                    perturbed_expectations_to_burnout, perturbed_compet_burnout_to_kpi)
     integral_kpi = np.dot(np.mean(kpi1, axis=0), compet_burnout_to_kpi.kpi_importance)
 
     return integral_kpi
 
 
 # Найти среднеквадратичный разброс при параметрах delta, epsilon с num_samples случайных реализаций
-def calc_mean_std(num_samples, delta, epsilon):
+def calc_mean_std(num_samples, delta, epsilon, file):
+    fout_kpi = open(file, 'w')
     kpi_sample = np.zeros(num_samples)
     for i in range(num_samples):
         kpi_sample[i] = generate_random_kpi(delta, epsilon)
+        print(kpi_sample[i], file=fout_kpi)
+    fout_kpi.close()
     return np.mean(kpi_sample), np.std(kpi_sample)
 
 
@@ -85,11 +115,14 @@ print("Реальные KPI при t = 0: ", np.mean(kpi_t0.y[selected, :], axis
 invest_to_compet_left_conf = InvestToCompet("invest_to_compet_left_conf_interval.csv")
 invest_to_compet_right_conf = InvestToCompet("invest_to_compet_right_conf_interval.csv")
 
-num_samples = 1
+num_samples = 3
 delta = 0.05
 epsilon = 0.0
-print(calc_mean_std(num_samples, delta, epsilon))
+mu_kpi, sigma_kpi = calc_mean_std(num_samples, delta, epsilon, file='kpi_realizations.txt')
+print("mu = ", mu_kpi, " sigma = ", sigma_kpi)
+
 #with open('kpi_realizations.txt', 'w') as fout_kpi:
+#    print("delta =", delta, ", epsilon =", epsilon, "\n", file=fout_kpi)
 #    for _ in range(num_samples):
 #        kpi_realization = generate_random_kpi(delta, epsilon)
 #        print(kpi_realization, file=fout_kpi)
