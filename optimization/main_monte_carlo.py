@@ -113,11 +113,13 @@ def generate_random_kpi(delta, epsilon):
 
     z, x_new, q_new = optimize(compet_t0.x[selected, :], expectations.q[selected, :], expectations.a[selected, :],
                                perturbed_invest_to_compet, activities_expectations, perturbed_expectations_to_burnout,
-                               perturbed_compet_burnout_to_kpi, budget_constraints, total_budget)
+                               perturbed_compet_burnout_to_kpi, budget_constraints, total_budget, verbose=False)
 
     kpi1 = calc_kpi(x_new, q_new, expectations.a[selected, :],
                     perturbed_expectations_to_burnout, perturbed_compet_burnout_to_kpi)
     integral_kpi = np.dot(np.mean(kpi1, axis=0), compet_burnout_to_kpi.kpi_importance)
+
+    print("Распределение по направлениям:", np.sum(z, axis=0))
 
     return integral_kpi
 
@@ -128,7 +130,7 @@ def calc_mean_std(num_samples, delta, epsilon, file):
     print("delta =", delta, ", epsilon =", epsilon, "\n", file=fout_kpi)
     kpi_sample = np.zeros(num_samples)
     for i in range(num_samples):
-        print("\n", "РЕАЛИЗАЦИЯ", i, "\n")
+        print("\n", "РЕАЛИЗАЦИЯ", i + 1, "\n")
         kpi_sample[i] = generate_random_kpi(delta, epsilon)
         print(kpi_sample[i], file=fout_kpi)
     mu = np.mean(kpi_sample)
@@ -144,7 +146,7 @@ print("Реальные KPI при t = 0: ", np.mean(kpi_t0.y[selected, :], axis
 invest_to_compet_left_conf = InvestToCompet("invest_to_compet_left_conf_interval.csv")
 invest_to_compet_right_conf = InvestToCompet("invest_to_compet_right_conf_interval.csv")
 
-num_samples = 100
+num_samples = 5
 delta = 0.05
 epsilon = 0.03
 mu_kpi, sigma_kpi = calc_mean_std(num_samples, delta, epsilon, file='kpi_realizations.txt')

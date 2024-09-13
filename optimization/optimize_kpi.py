@@ -9,7 +9,7 @@ import numpy as np
 #   x_new - массив I x J - компетенции сотрудников в момент времени t + 1
 #   q_new - массив I x K - отклонения в ожиданиях сотрудников от мероприятий в момент времени t + 1
 def optimize(x, q, a, invest_to_compet, activities_expectations, expectations_to_burnout, compet_burnout_to_kpi,
-             budget_constraints, total_budget):
+             budget_constraints, total_budget, verbose=True):
     data_size = x.shape[0]
     num_compet = x.shape[1]
     num_activities = q.shape[1]
@@ -147,10 +147,11 @@ def optimize(x, q, a, invest_to_compet, activities_expectations, expectations_to
             x_new[best_i, j] += invest_to_compet.alpha[j, best_k] * increase_z_ik
         q_new[best_i, best_k] = activities_expectations.calc_expectations(best_k, z[best_i, best_k], q[best_i, best_k])
 
-        print("max_coef =", max_coef)
-        print("coef_burnout =", coef_burnout)
-        print("increase_z_ik =", increase_z_ik)
-        print("Потрачено:", budget_spent)
+        if verbose:
+            print("max_coef =", max_coef)
+            print("coef_burnout =", coef_burnout)
+            print("increase_z_ik =", increase_z_ik)
+            print("Потрачено:", budget_spent)
 
     return z, x_new, q_new
 
