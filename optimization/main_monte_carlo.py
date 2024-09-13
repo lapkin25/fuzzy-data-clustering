@@ -1,3 +1,5 @@
+import numpy as np
+
 from input_data import *
 from optimize_kpi import optimize, calc_kpi
 import random
@@ -43,7 +45,8 @@ def trunc_normal_random(a, b):
 
 # Варьируем коэффициенты модели, разыгрывая их на доверительных интервалах
 # Находим случайную реализацию оптимального KPI
-def generate_random_kpi():
+# delta - относительное возмущение коэффициентов, epsilon - относительное возмущение ломаной
+def generate_random_kpi(delta, epsilon):
     # Разыгрываем коэффициенты влияния инвестиций на компетенции
     perturbed_invest_to_compet = InvestToCompet("invest_to_compet.csv")
     # просто присвоить один объект другому нельзя, поэтому создали еще один такой же
@@ -68,14 +71,25 @@ def generate_random_kpi():
     return integral_kpi
 
 
+# Найти среднеквадратичный разброс при параметрах delta, epsilon с num_samples случайных реализаций
+def calc_mean_std(num_samples, delta, epsilon):
+    kpi_sample = np.zeros(num_samples)
+    for i in range(num_samples):
+        kpi_sample[i] = generate_random_kpi(delta, epsilon)
+    return np.mean(kpi_sample), np.std(kpi_sample)
+
+
 print("Реальные KPI при t = 0: ", np.mean(kpi_t0.y[selected, :], axis=0), " -> ",
     np.dot(np.mean(kpi_t0.y[selected, :], axis=0), compet_burnout_to_kpi.kpi_importance))
 
 invest_to_compet_left_conf = InvestToCompet("invest_to_compet_left_conf_interval.csv")
 invest_to_compet_right_conf = InvestToCompet("invest_to_compet_right_conf_interval.csv")
 
-num_samples = 10
-with open('kpi_realizations.txt', 'w') as fout_kpi:
-    for _ in range(num_samples):
-        kpi_realization = generate_random_kpi()
-        print(kpi_realization, file=fout_kpi)
+num_samples = 1
+delta = 0.05
+epsilon = 0.0
+print(calc_mean_std(num_samples, delta, epsilon))
+#with open('kpi_realizations.txt', 'w') as fout_kpi:
+#    for _ in range(num_samples):
+#        kpi_realization = generate_random_kpi(delta, epsilon)
+#        print(kpi_realization, file=fout_kpi)
