@@ -1,6 +1,5 @@
 from input_data import *
 from optimize_kpi import optimize, calc_kpi
-import random
 
 
 # исходные данные
@@ -34,7 +33,7 @@ total_budget = 500000 / 4 * selected_data_size
 def trunc_normal_random(a, b):
     ok = False
     while not ok:
-        x = random.gauss(mu=(a + b) / 2, sigma=(b - a) / 4)
+        x = np.random.normal((a + b) / 2, (b - a) / 4)
         if x >= a and x <= b:
             ok = True
     #print(a, b, x)
