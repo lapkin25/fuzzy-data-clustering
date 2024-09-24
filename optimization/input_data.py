@@ -350,6 +350,36 @@ class CompetBurnoutToKPI:
     def calc_kpi(self, m, x, b):
         return self.calc_phi(m, x) + self.burnout_intercept[m] + np.dot(self.burnout_coef[m, :], b)
 
+    # вычислить меры принадлежности компетентностным категориям m-го KPI, зная вектор компетенций x
+    def calc_u(self, m, x):
+        integral_compet = np.dot(x, self.w[m, :])
+        return np.array([self.calc_u_k_given_a(k, integral_compet, self.r[m, :]) for k in range(num_compet_classes)])
+
+    def calc_u_k_given_a(self, k, x, a):
+        m = len(a)  # количество диапазонов
+        if k == 0:
+            if x <= a[0]:
+                u_val = 1
+            elif x > a[0] and x <= a[1]:
+                u_val = (a[1] - x) / (a[1] - a[0])
+            else:
+                u_val = 0
+        elif k == m - 1:
+            if x >= a[m - 1]:
+                u_val = 1
+            elif x >= a[m - 2] and x < a[m - 1]:
+                u_val = (x - a[m - 2]) / (a[m - 1] - a[m - 2])
+            else:
+                u_val = 0
+        else:  # 0 < k < m - 1
+            if x >= a[k - 1] and x <= a[k]:
+                u_val = (x - a[k - 1]) / (a[k] - a[k - 1])
+            elif x >= a[k] and x <= a[k + 1]:
+                u_val = (a[k + 1] - x) / (a[k + 1] - a[k])
+            else:
+                u_val = 0
+        return u_val
+
 
 class BudgetConstraints:
     def __init__(self, file_name):
