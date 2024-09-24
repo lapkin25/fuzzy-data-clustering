@@ -49,6 +49,7 @@ def perturb_coef(coef, delta):
 # Варьируем коэффициенты модели, разыгрывая их на доверительных интервалах
 # Находим случайную реализацию оптимального KPI
 # delta - относительное возмущение коэффициентов, epsilon - относительное возмущение ломаной
+# Возвращает кортеж: оптимальный KPI, распредедение инвестиций по направлениям
 def generate_random_kpi(delta, epsilon):
     # Разыгрываем коэффициенты влияния инвестиций на компетенции
     perturbed_invest_to_compet = InvestToCompet("invest_to_compet.csv")
@@ -120,7 +121,7 @@ def generate_random_kpi(delta, epsilon):
 
     #print("Распределение по направлениям:", np.sum(z, axis=0))
 
-    return integral_kpi
+    return integral_kpi, np.sum(z, axis=0)
 
 
 # Найти среднеквадратичный разброс при параметрах delta, epsilon с num_samples случайных реализаций
@@ -128,15 +129,21 @@ def calc_mean_std(num_samples, delta, epsilon, file):
     fout_kpi = open(file, 'w')
     print("delta =", delta, ", epsilon =", epsilon, "\n", file=fout_kpi)
     kpi_sample = np.zeros(num_samples)
+    Z = np.zeros((num_samples, num_activities))
     for i in range(num_samples):
         print("\n", "РЕАЛИЗАЦИЯ", i + 1, "\n")
-        kpi_sample[i] = generate_random_kpi(delta, epsilon)
+        kpi_sample[i], Z[i, :] = generate_random_kpi(delta, epsilon)
         print(kpi_sample[i], file=fout_kpi)
+        print(Z[i, :], file=fout_kpi)
     mu = np.mean(kpi_sample)
     sigma = np.std(kpi_sample)
+    mu_Z = np.mean(Z, axis=0)
+    sigma_Z = np.std(Z, axis=0)
     print("\n", "mu =", mu, ", sigma =", sigma, file=fout_kpi)
+    print("mu_Z =", mu_Z, file=fout_kpi)
+    print("sigma_Z =", sigma_Z, file=fout_kpi)
     fout_kpi.close()
-    return mu, sigma
+    return mu, sigma, mu_Z, sigma_Z
 
 
 print("Реальные KPI при t = 0: ", np.mean(kpi_t0.y[selected, :], axis=0), " -> ",
@@ -148,8 +155,10 @@ invest_to_compet_right_conf = InvestToCompet("invest_to_compet_right_conf_interv
 num_samples = 5
 delta = 0.05
 epsilon = 0.03
-mu_kpi, sigma_kpi = calc_mean_std(num_samples, delta, epsilon, file='kpi_realizations.txt')
+mu_kpi, sigma_kpi, mu_Z, sigma_Z = calc_mean_std(num_samples, delta, epsilon, file='kpi_realizations.txt')
 print("mu = ", mu_kpi, " sigma = ", sigma_kpi)
+print("mu_Z = ", mu_Z)
+print("sigma_Z = ", sigma_Z)
 
 #with open('kpi_realizations.txt', 'w') as fout_kpi:
 #    print("delta =", delta, ", epsilon =", epsilon, "\n", file=fout_kpi)
