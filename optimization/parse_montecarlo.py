@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+
 
 def read_list(f):
     strs = f.readline().strip().split()
@@ -47,3 +49,15 @@ print("mu_Z = ", np.mean(z_vec, axis=0))
 print("sigma_Z = ", np.std(z_vec, axis=0))
 print("mu_classes = ", np.mean(c_vec, axis=0))
 print("sigma_classes = ", np.std(c_vec, axis=0))
+
+for i in range(100):
+    plt.plot(1 + np.arange(29), z_vec[i], 'bo')
+locs, labels = plt.xticks()  # Get the current locations and labels.
+plt.xticks(np.arange(1, 30))
+plt.show()
+
+for i in range(100):
+    plt.plot(1 + np.arange(6), c_vec[i], 'bo')
+locs, labels = plt.xticks()  # Get the current locations and labels.
+plt.xticks(np.arange(1, 7))
+plt.show()
