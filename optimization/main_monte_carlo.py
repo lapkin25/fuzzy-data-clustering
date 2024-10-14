@@ -210,7 +210,7 @@ def generate_random_kpi_constr(rel_shift, block_index):
 # Найти среднеквадратичный разброс при параметрах rel_shift, block_index с num_samples случайных реализаций
 def calc_mean_std_constr(num_samples, rel_shift, block_index, file):
     fout_kpi = open(file, 'w')
-    print("rel_shift =", rel_shift, ", block_index =", block_name[block_index], "\n", file=fout_kpi)
+    print("rel_shift =", rel_shift, ", block_index =", block_name[block_index] + ' (блок ' + str(block_index + 1) + ')', "\n", file=fout_kpi)
     kpi_sample = np.zeros(num_samples)
     Z = np.zeros((num_samples, num_activities))
     invest_by_compet_classes = np.zeros((num_samples, num_compet_classes))
@@ -256,7 +256,7 @@ print("sigma_classes = ", sigma_classes)
 """
 
 # Сдвиг границ мероприятий
-num_samples = 10
+num_samples = 100
 block_index = 0
 rel_shift = 0.1
 mu_kpi, sigma_kpi, mu_Z, sigma_Z, mu_classes, sigma_classes =\
