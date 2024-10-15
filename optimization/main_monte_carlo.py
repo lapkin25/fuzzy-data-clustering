@@ -60,10 +60,10 @@ def perturb_coef(coef, delta):
     return trunc_normal_random(coef - sigma, coef + sigma)
 
 
-# Найти возмущенный коэффициент (с равномерным распределением) с относительным изменением delta
+# Найти возмущенный коэффициент (с равномерным распределением) с относительным увеличением delta
 def perturb_coef_uniform(coef, rel_shift):
     delta = abs(coef) * rel_shift
-    return uniform_random(coef - delta, coef + delta)
+    return uniform_random(coef, coef + delta)
 
 
 # Варьируем коэффициенты модели, разыгрывая их на доверительных интервалах
