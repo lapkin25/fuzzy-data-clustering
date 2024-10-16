@@ -43,12 +43,27 @@ with open("Случайные реализации/5_3.txt", 'r') as f:
         assert(len(c) == 6)
         c_vec[i, :] = c
 
+
+# индексы направлений мероприятий, относящихся к каждому блоку
+activities_blocks = [[0, 1, 2],
+                     [3, 4, 5, 6],
+                     [7, 8],
+                     [9, 10, 11, 12, 13],
+                     [14, 15, 16, 17, 18],
+                     [19, 20, 21, 22, 23, 24, 25, 26, 27, 28]]
+
 print("mu = ", np.mean(kpi_vec))
 print("sigma = ", np.std(kpi_vec))
+mu_Z = np.mean(z_vec, axis=0)
 print("mu_Z = ", np.mean(z_vec, axis=0))
 print("sigma_Z = ", np.std(z_vec, axis=0))
 print("mu_classes = ", np.mean(c_vec, axis=0))
 print("sigma_classes = ", np.std(c_vec, axis=0))
+
+mu_blocks = np.zeros(len(activities_blocks))
+for i, block in enumerate(activities_blocks):
+    mu_blocks[i] = sum([mu_Z[j] for j in block])
+print("mu_blocks = ", mu_blocks)
 
 for i in range(100):
     plt.plot(1 + np.arange(29), z_vec[i], 'bo')
