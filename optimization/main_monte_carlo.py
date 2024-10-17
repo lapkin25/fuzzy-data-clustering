@@ -241,6 +241,74 @@ def calc_mean_std_constr(num_samples, rel_shift, block_index, file):
     return mu, sigma, mu_Z, sigma_Z, mu_classes, sigma_classes
 
 
+def generate_random_kpi_data(var, perturb_compet=False, perturb_expect=False):
+    perturbed_x = np.copy(compet_t0.x[selected, :])
+    perturbed_q = np.copy(expectations.q[selected, :])
+
+    if perturb_compet:
+        for i in range(perturbed_x.shape[0]):
+            for j in range(perturbed_x.shape[1]):
+                perturbed_x[i, j] = perturb_coef(perturbed_x[i, j], var)
+
+    if perturb_expect:
+        for i in range(perturbed_q.shape[0]):
+            for j in range(perturbed_q.shape[1]):
+                perturbed_q[i, j] = perturb_coef(perturbed_q[i, j], var)
+
+    z, x_new, q_new = optimize(perturbed_x, perturbed_q, expectations.a[selected, :],
+                               invest_to_compet, activities_expectations, expectations_to_burnout,
+                               compet_burnout_to_kpi,
+                               budget_constraints, total_budget, verbose=False)
+
+    kpi1 = calc_kpi(x_new, q_new, expectations.a[selected, :],
+                    expectations_to_burnout, compet_burnout_to_kpi)
+    integral_kpi = np.dot(np.mean(kpi1, axis=0), compet_burnout_to_kpi.kpi_importance)
+
+    # распределение инвестиций по компетентностным классам
+    invest_by_compet_classes = np.zeros(num_compet_classes)
+    for j, i in enumerate(selected):
+        u = compet_burnout_to_kpi.calc_u(2, compet_t0.x[i, :])  # берем категории для KPI с индексом 2
+        #print(u)
+        for k in range(num_compet_classes):
+            invest_by_compet_classes[k] += u[k] * np.sum(z[j, :])
+
+    return integral_kpi, np.sum(z, axis=0), invest_by_compet_classes
+
+
+# Найти среднеквадратичный разброс при параметре var с num_samples случайных реализаций
+def calc_mean_std_data(num_samples, var, perturb_compet, perturb_expect, file):
+    fout_kpi = open(file, 'w')
+    print("var =", var, ", perturb_compet =", perturb_compet, ", perturb_expect =", perturb_expect, "\n", file=fout_kpi)
+    kpi_sample = np.zeros(num_samples)
+    Z = np.zeros((num_samples, num_activities))
+    invest_by_compet_classes = np.zeros((num_samples, num_compet_classes))
+    for i in range(num_samples):
+        print("\n", "РЕАЛИЗАЦИЯ", i + 1, "\n")
+        kpi_sample[i], Z[i, :], invest_by_compet_classes[i, :] = generate_random_kpi_data(var, perturb_compet, perturb_expect)
+        print(kpi_sample[i], file=fout_kpi)
+        print(Z[i, :], file=fout_kpi)
+        print(invest_by_compet_classes[i, :], file=fout_kpi)
+    mu = np.mean(kpi_sample)
+    sigma = np.std(kpi_sample)
+    mu_Z = np.mean(Z, axis=0)
+    sigma_Z = np.std(Z, axis=0)
+    mu_classes = np.mean(invest_by_compet_classes, axis=0)
+    sigma_classes = np.std(invest_by_compet_classes, axis=0)
+    print("\n", "mu =", mu, ", sigma =", sigma, file=fout_kpi)
+    print("mu_Z =", mu_Z, file=fout_kpi)
+    print("sigma_Z =", sigma_Z, file=fout_kpi)
+    print("mu_classes =", mu_classes, file=fout_kpi)
+    print("sigma_classes =", sigma_classes, file=fout_kpi)
+
+    mu_blocks = np.zeros(len(activities_blocks))
+    for i, block in enumerate(activities_blocks):
+        mu_blocks[i] = sum([mu_Z[j] for j in block])
+    print("mu_blocks = ", mu_blocks, file=fout_kpi)
+
+    fout_kpi.close()
+    return mu, sigma, mu_Z, sigma_Z, mu_classes, sigma_classes
+
+
 print("Реальные KPI при t = 0: ", np.mean(kpi_t0.y[selected, :], axis=0), " -> ",
     np.dot(np.mean(kpi_t0.y[selected, :], axis=0), compet_burnout_to_kpi.kpi_importance))
 
@@ -262,11 +330,29 @@ print("sigma_classes = ", sigma_classes)
 """
 
 # Сдвиг границ мероприятий
+"""
 num_samples = 100
-block_index = 3
+block_index = 5
 rel_shift = 0.1
 mu_kpi, sigma_kpi, mu_Z, sigma_Z, mu_classes, sigma_classes =\
     calc_mean_std_constr(num_samples, rel_shift, block_index, file='kpi_realizations.txt')
+print("mu = ", mu_kpi, " sigma = ", sigma_kpi)
+print("mu_Z = ", mu_Z)
+print("sigma_Z = ", sigma_Z)
+print("mu_classes = ", mu_classes)
+print("sigma_classes = ", sigma_classes)
+
+mu_blocks = np.zeros(len(activities_blocks))
+for i, block in enumerate(activities_blocks):
+    mu_blocks[i] = sum([mu_Z[j] for j in block])
+print("mu_blocks = ", mu_blocks)
+"""
+
+# Варьируем данные
+num_samples = 10
+var = 0.1
+mu_kpi, sigma_kpi, mu_Z, sigma_Z, mu_classes, sigma_classes =\
+    calc_mean_std_data(num_samples, var, perturb_compet=True, perturb_expect=False, file='kpi_realizations.txt')
 print("mu = ", mu_kpi, " sigma = ", sigma_kpi)
 print("mu_Z = ", mu_Z)
 print("sigma_Z = ", sigma_Z)
