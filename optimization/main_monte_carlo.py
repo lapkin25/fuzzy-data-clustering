@@ -305,6 +305,11 @@ def calc_mean_std_constr_year(num_samples, rel_shift, block_index, file):
             mu_blocks[quart, i] = sum([mu_Z[quart, j] for j in block])
     print("mu_blocks = ", mu_blocks, file=fout_kpi)
 
+    mu_blocks_year = np.zeros(len(activities_blocks))
+    for i, block in enumerate(activities_blocks):
+        mu_blocks_year[i] = sum([mu_Z_year[j] for j in block])
+    print("mu_blocks_year = ", mu_blocks_year, file=fout_kpi)
+
     fout_kpi.close()
     return mu, sigma, mu_Z, sigma_Z
 
@@ -419,7 +424,7 @@ print("mu_blocks = ", mu_blocks)
 
 
 # Сдвиг границ мероприятий (оптимизация за год)
-num_samples = 3  #100
+num_samples = 100
 block_index = 0
 rel_shift = 0.1
 #mu_kpi, sigma_kpi, mu_Z, sigma_Z, mu_classes, sigma_classes =\
