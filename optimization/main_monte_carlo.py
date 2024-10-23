@@ -207,6 +207,40 @@ def generate_random_kpi_constr(rel_shift, block_index):
     return integral_kpi, np.sum(z, axis=0), invest_by_compet_classes
 
 
+def generate_random_kpi_constr_year(rel_shift, block_index):
+    perturbed_budget_constraints = BudgetConstraints("budget_activities.csv")
+    # сдвигаем границы для заданного блока
+    for ind in activities_blocks[block_index]:
+        perturbed_budget_constraints.budget_activities_percent[ind] =\
+            perturb_coef_uniform(perturbed_budget_constraints.budget_activities_percent[ind], rel_shift)
+
+    print("квартал", 1)
+    z, x_new, q_new = optimize(compet_t0.x[selected, :], expectations.q[selected, :], expectations.a[selected, :],
+                               invest_to_compet, activities_expectations, expectations_to_burnout,
+                               compet_burnout_to_kpi,
+                               perturbed_budget_constraints, total_budget, verbose=False)
+
+    kpi1 = calc_kpi(x_new, q_new, expectations.a[selected, :],
+                    expectations_to_burnout, compet_burnout_to_kpi)
+    integral_kpi = np.dot(np.mean(kpi1, axis=0), compet_burnout_to_kpi.kpi_importance)
+    #integral_kpi_list = np.array([integral_kpi])
+
+    # еще 3 квартала
+    z_quarterly_activities = np.sum(z, axis=0)
+    for quart in range(2, 5):
+        print("квартал", quart)
+        z, x_new, q_new = optimize(x_new, q_new, expectations.a[selected, :],
+                                   invest_to_compet, activities_expectations, expectations_to_burnout,
+                                   compet_burnout_to_kpi,
+                                   budget_constraints, total_budget, verbose=False)
+        z_quarterly_activities = np.c_[z_quarterly_activities, np.sum(z, axis=0)]
+        kpi1 = calc_kpi(x_new, q_new, expectations.a[selected, :], expectations_to_burnout, compet_burnout_to_kpi)
+        integral_kpi = np.dot(np.mean(kpi1, axis=0), compet_burnout_to_kpi.kpi_importance)
+        #integral_kpi_list = np.c_[integral_kpi_list, integral_kpi]
+
+    return integral_kpi, z_quarterly_activities.T
+
+
 # Найти среднеквадратичный разброс при параметрах rel_shift, block_index с num_samples случайных реализаций
 def calc_mean_std_constr(num_samples, rel_shift, block_index, file):
     fout_kpi = open(file, 'w')
@@ -239,6 +273,40 @@ def calc_mean_std_constr(num_samples, rel_shift, block_index, file):
 
     fout_kpi.close()
     return mu, sigma, mu_Z, sigma_Z, mu_classes, sigma_classes
+
+
+def calc_mean_std_constr_year(num_samples, rel_shift, block_index, file):
+    fout_kpi = open(file, 'w')
+    print("оптимизация за год -", "rel_shift =", rel_shift, ", block_index =", block_name[block_index] + ' (блок ' + str(block_index + 1) + ')', "\n", file=fout_kpi)
+    kpi_sample = np.zeros(num_samples)
+    Z = np.zeros((num_samples, 4, num_activities))
+    for i in range(num_samples):
+        print("\n", "РЕАЛИЗАЦИЯ", i + 1, "\n")
+        kpi_sample[i], Z[i, :, :] = generate_random_kpi_constr_year(rel_shift, block_index)
+        print(kpi_sample[i], file=fout_kpi)
+        for quart in range(4):
+            print(Z[i, quart, :], file=fout_kpi)
+
+    mu = np.mean(kpi_sample)
+    sigma = np.std(kpi_sample)
+    mu_Z = np.mean(Z, axis=0)
+    sigma_Z = np.std(Z, axis=0)
+    print("\n", "mu =", mu, ", sigma =", sigma, file=fout_kpi)
+    print("mu_Z =", mu_Z, file=fout_kpi)
+    print("sigma_Z =", sigma_Z, file=fout_kpi)
+    mu_Z_year = np.mean(np.sum(Z, axis=1), axis=0)
+    sigma_Z_year = np.std(np.sum(Z, axis=1), axis=0)
+    print("mu_Z_year =", mu_Z_year, file=fout_kpi)
+    print("sigma_Z_year =", sigma_Z_year, file=fout_kpi)
+
+    mu_blocks = np.zeros((4, len(activities_blocks)))
+    for quart in range(4):
+        for i, block in enumerate(activities_blocks):
+            mu_blocks[quart, i] = sum([mu_Z[quart, j] for j in block])
+    print("mu_blocks = ", mu_blocks, file=fout_kpi)
+
+    fout_kpi.close()
+    return mu, sigma, mu_Z, sigma_Z
 
 
 def generate_random_kpi_data(var, perturb_compet=False, perturb_expect=False):
@@ -329,10 +397,11 @@ print("mu_classes = ", mu_classes)
 print("sigma_classes = ", sigma_classes)
 """
 
+
 # Сдвиг границ мероприятий
 """
 num_samples = 100
-block_index = 5
+block_index = 0
 rel_shift = 0.1
 mu_kpi, sigma_kpi, mu_Z, sigma_Z, mu_classes, sigma_classes =\
     calc_mean_std_constr(num_samples, rel_shift, block_index, file='kpi_realizations.txt')
@@ -348,8 +417,30 @@ for i, block in enumerate(activities_blocks):
 print("mu_blocks = ", mu_blocks)
 """
 
+
+# Сдвиг границ мероприятий (оптимизация за год)
+num_samples = 3  #100
+block_index = 0
+rel_shift = 0.1
+#mu_kpi, sigma_kpi, mu_Z, sigma_Z, mu_classes, sigma_classes =\
+calc_mean_std_constr_year(num_samples, rel_shift, block_index, file='kpi_realizations.txt')
+"""
+print("mu = ", mu_kpi, " sigma = ", sigma_kpi)
+print("mu_Z = ", mu_Z)
+print("sigma_Z = ", sigma_Z)
+print("mu_classes = ", mu_classes)
+print("sigma_classes = ", sigma_classes)
+
+mu_blocks = np.zeros(len(activities_blocks))
+for i, block in enumerate(activities_blocks):
+    mu_blocks[i] = sum([mu_Z[j] for j in block])
+print("mu_blocks = ", mu_blocks)
+"""
+
+
 # Варьируем данные
-num_samples = 10
+"""
+num_samples = 100
 var = 0.1
 mu_kpi, sigma_kpi, mu_Z, sigma_Z, mu_classes, sigma_classes =\
     calc_mean_std_data(num_samples, var, perturb_compet=True, perturb_expect=False, file='kpi_realizations.txt')
@@ -363,3 +454,4 @@ mu_blocks = np.zeros(len(activities_blocks))
 for i, block in enumerate(activities_blocks):
     mu_blocks[i] = sum([mu_Z[j] for j in block])
 print("mu_blocks = ", mu_blocks)
+"""
