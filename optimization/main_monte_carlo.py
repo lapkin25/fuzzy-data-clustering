@@ -232,7 +232,7 @@ def generate_random_kpi_constr_year(rel_shift, block_index):
         z, x_new, q_new = optimize(x_new, q_new, expectations.a[selected, :],
                                    invest_to_compet, activities_expectations, expectations_to_burnout,
                                    compet_burnout_to_kpi,
-                                   budget_constraints, total_budget, verbose=False)
+                                   perturbed_budget_constraints, total_budget, verbose=False)
         z_quarterly_activities = np.c_[z_quarterly_activities, np.sum(z, axis=0)]
         kpi1 = calc_kpi(x_new, q_new, expectations.a[selected, :], expectations_to_burnout, compet_burnout_to_kpi)
         integral_kpi = np.dot(np.mean(kpi1, axis=0), compet_burnout_to_kpi.kpi_importance)
@@ -425,7 +425,7 @@ print("mu_blocks = ", mu_blocks)
 
 # Сдвиг границ мероприятий (оптимизация за год)
 num_samples = 100
-block_index = 0
+block_index = 5
 rel_shift = 0.1
 #mu_kpi, sigma_kpi, mu_Z, sigma_Z, mu_classes, sigma_classes =\
 calc_mean_std_constr_year(num_samples, rel_shift, block_index, file='kpi_realizations.txt')
