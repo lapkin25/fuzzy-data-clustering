@@ -21,12 +21,21 @@ def read_list(f):
     return z
 
 
-with open("Случайные реализации/5_3.txt", 'r') as f:
+# индексы направлений мероприятий, относящихся к каждому блоку
+activities_blocks = [[0, 1, 2],
+                     [3, 4, 5, 6],
+                     [7, 8],
+                     [9, 10, 11, 12, 13],
+                     [14, 15, 16, 17, 18],
+                     [19, 20, 21, 22, 23, 24, 25, 26, 27, 28]]
+
+with open("Случайные реализации/Сдвиг границ/15_6.txt", 'r') as f:
     s = f.readline().strip()
     s = f.readline().strip()
     kpi_vec = np.zeros(100)
     z_vec = np.zeros((100, 29))
     c_vec = np.zeros((100, 6))
+    z_blocks_vec = np.zeros((100, 6))
     for i in range(100):
         s = f.readline().strip()
         kpi = float(s)
@@ -43,14 +52,9 @@ with open("Случайные реализации/5_3.txt", 'r') as f:
         assert(len(c) == 6)
         c_vec[i, :] = c
 
+        for k, block in enumerate(activities_blocks):
+            z_blocks_vec[i, k] = sum([z_vec[i, j] for j in block])
 
-# индексы направлений мероприятий, относящихся к каждому блоку
-activities_blocks = [[0, 1, 2],
-                     [3, 4, 5, 6],
-                     [7, 8],
-                     [9, 10, 11, 12, 13],
-                     [14, 15, 16, 17, 18],
-                     [19, 20, 21, 22, 23, 24, 25, 26, 27, 28]]
 
 print("mu = ", np.mean(kpi_vec))
 print("sigma = ", np.std(kpi_vec))
@@ -64,6 +68,12 @@ mu_blocks = np.zeros(len(activities_blocks))
 for i, block in enumerate(activities_blocks):
     mu_blocks[i] = sum([mu_Z[j] for j in block])
 print("mu_blocks = ", mu_blocks)
+
+mu_blocks = np.mean(z_blocks_vec, axis=0)
+sigma_blocks = np.std(z_blocks_vec, axis=0)
+print("mu_blocks = ", mu_blocks)
+print("sigma_blocks = ", sigma_blocks)
+
 
 for i in range(100):
     plt.plot(1 + np.arange(29), z_vec[i], 'bo')
