@@ -388,11 +388,11 @@ print("Реальные KPI при t = 0: ", np.mean(kpi_t0.y[selected, :], axis
 invest_to_compet_left_conf = InvestToCompet("invest_to_compet_left_conf_interval.csv")
 invest_to_compet_right_conf = InvestToCompet("invest_to_compet_right_conf_interval.csv")
 
+
 # Основной код
-"""
 num_samples = 100
 delta = 0.05
-epsilon = 0.03
+epsilon = 0.05
 mu_kpi, sigma_kpi, mu_Z, sigma_Z, mu_classes, sigma_classes =\
     calc_mean_std(num_samples, delta, epsilon, file='kpi_realizations.txt')
 print("mu = ", mu_kpi, " sigma = ", sigma_kpi)
@@ -400,7 +400,7 @@ print("mu_Z = ", mu_Z)
 print("sigma_Z = ", sigma_Z)
 print("mu_classes = ", mu_classes)
 print("sigma_classes = ", sigma_classes)
-"""
+
 
 
 # Сдвиг границ мероприятий
@@ -424,11 +424,41 @@ print("mu_blocks = ", mu_blocks)
 
 
 # Сдвиг границ мероприятий (оптимизация за год)
+"""
 num_samples = 100
-block_index = 5
+block_index = 0
 rel_shift = 0.1
 #mu_kpi, sigma_kpi, mu_Z, sigma_Z, mu_classes, sigma_classes =\
 calc_mean_std_constr_year(num_samples, rel_shift, block_index, file='kpi_realizations.txt')
+"""
+
+"""
+num_samples = 100
+block_index = 0
+rel_shift = 0.1
+calc_mean_std_constr_year(num_samples, rel_shift, block_index, file='Случайные реализации/Сдвиг границ_за год/10_1_год.txt')
+
+num_samples = 100
+block_index = 1
+rel_shift = 0.1
+calc_mean_std_constr_year(num_samples, rel_shift, block_index, file='Случайные реализации/Сдвиг границ_за год/10_2_год.txt')
+
+num_samples = 100
+block_index = 2
+rel_shift = 0.1
+calc_mean_std_constr_year(num_samples, rel_shift, block_index, file='Случайные реализации/Сдвиг границ_за год/10_3_год.txt')
+
+num_samples = 100
+block_index = 3
+rel_shift = 0.1
+calc_mean_std_constr_year(num_samples, rel_shift, block_index, file='Случайные реализации/Сдвиг границ_за год/10_4_год.txt')
+
+num_samples = 100
+block_index = 4
+rel_shift = 0.1
+calc_mean_std_constr_year(num_samples, rel_shift, block_index, file='Случайные реализации/Сдвиг границ_за год/10_5_год.txt')
+"""
+
 """
 print("mu = ", mu_kpi, " sigma = ", sigma_kpi)
 print("mu_Z = ", mu_Z)
